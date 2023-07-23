@@ -22,6 +22,7 @@ class SettingActivity : AppCompatActivity() {
         tableNumber = getSharedPreferences("number", MODE_PRIVATE)
         ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
 
+        // 저장 버튼 클릭 시
         binding.saveBtn.setOnClickListener {
             // sharedPreference 저장
             tableNumber.edit {
@@ -30,6 +31,14 @@ class SettingActivity : AppCompatActivity() {
             ipAddress.edit {
                 putString("ip", binding.ipEt.text.toString())
             }
+            // MainActivity 로 이동
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        // 취소 버튼 클릭 시
+        binding.cancelBtn.setOnClickListener {
             // MainActivity 로 이동
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
