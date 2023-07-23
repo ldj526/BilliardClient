@@ -2,16 +2,16 @@ package com.example.billiardclient
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.billiardclient.databinding.ActivityMainBinding
+import com.example.billiardclient.databinding.ActivitySettingBinding
 
-class MainActivity : AppCompatActivity() {
+class SettingActivity : AppCompatActivity() {
 
-    private var _binding: ActivityMainBinding? = null
+    private var _binding: ActivitySettingBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = ActivityMainBinding.inflate(layoutInflater)
+        _binding = ActivitySettingBinding.inflate(layoutInflater)
         setContentView(binding.root)
     }
 
