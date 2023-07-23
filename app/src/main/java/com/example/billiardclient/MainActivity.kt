@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
             isRunning = !isRunning
             if (isRunning) start() else stop()
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun start() {
-        binding.startBtn.text = "END"
+        binding.startBtn.text = "E N D"
         timerTask =
             timer(period = 60000) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
                 val hour = time / 60 // 나눗셈의 몫 (시간 부분)
@@ -65,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         isRunning = false // 현재 진행중인지 판별하기 위한 Boolean변수 false 세팅
         binding.hourText.text = "00" // 시간(시간) 초기화
         binding.minuteText.text = "00" // 시간(분) 초기화
-        binding.startBtn.text = "시작"
+        binding.startBtn.text = "START"
     }
 
     override fun onDestroy() {
