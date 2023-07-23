@@ -1,12 +1,12 @@
 package com.example.billiardclient
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.billiardclient.databinding.ActivityMainBinding
 import java.util.*
 import kotlin.concurrent.timer
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,12 +15,25 @@ class MainActivity : AppCompatActivity() {
     private var isRunning = false
     private var time = 0
     private var timerTask: Timer? = null
-
+    lateinit var tableNumber: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        tableNumber = getSharedPreferences("number", MODE_PRIVATE)
+
+        // Setting 화면에서 입력한 table 번호 가져오기
+        val text = "${tableNumber.getString("number", "NULL")}"
+        binding.tableNumber.text = text
+
+        // 테이블 번호 LongClick 시 Setting 화면으로 이동
+        binding.tableNumber.setOnLongClickListener {
+            val intent = Intent(this, SettingActivity::class.java)
+            startActivity(intent)
+            true
+        }
 
         binding.startBtn.setOnClickListener {
             isRunning = !isRunning
@@ -29,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun start() {
-        binding.startBtn.text = "종료"
+        binding.startBtn.text = "END"
         timerTask =
             timer(period = 60000) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
                 val hour = time / 60 // 나눗셈의 몫 (시간 부분)

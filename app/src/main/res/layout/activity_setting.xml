@@ -80,8 +80,7 @@
                 android:id="@+id/ipEt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="18dp"
-                android:text="___.___.___.___"/>
+                android:layout_margin="18dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
