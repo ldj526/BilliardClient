@@ -14,11 +14,10 @@
 
 # 통신
 - 서버에서 강제로 타이머 실행, 종료시키기
-  - Client에서 Server로부터 정보를 받고 Server로 다시 신호 보내기
-  - Client로부터 정보 받고 받았다는 정보 다시 Client로 보내기
-- 간헐적으로 신호를 보내 Client가 정상 작동하는지 확인
-  - 신호를 받은 Client에서 받았다는 정보를 다시 Server로 전송
-- 1분에 1회 Client에서 Server로 신호 보내기
+  - Server로부터 START 메세지를 받으면 타이머를 시작시킨다.
+  - Server로부터 END 메세지를 받으면 타이머를 종료시킨다.
+- 1분에 1회 Client에서 Server로 STATUS 메세지를 보낸다.
+- Server로부터 POLL 메세지를 받으면 Server로 STATUS 메세지를 보내준다.
 
 # 데이터 형식
 - Function / 현재 시각 / Data / CR(Carriage Return)
