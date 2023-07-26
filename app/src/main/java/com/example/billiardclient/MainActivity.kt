@@ -11,6 +11,7 @@ import com.example.billiardclient.databinding.ActivityMainBinding
 import java.io.IOException
 import java.net.Socket
 import java.net.UnknownHostException
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.timer
@@ -19,7 +20,6 @@ class MainActivity : AppCompatActivity() {
 
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
-    private var isRunning = false
     private var time = 0
     private var timerTask: Timer? = null
     private var statusTimerTask: Timer? = null
@@ -27,6 +27,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var ipAddress: SharedPreferences
     private lateinit var socket: Socket
     private var totalGameCount = 0
+    private var gameCount = 0
+    private var totalTimeHour = 0
+    private var totalTimeMinutes = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         // (임시) start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
-            isRunning = !isRunning
-            if (isRunning) {
+            if (binding.startBtn.text == "START") {
                 val startThread = StartThread()
                 startThread.start()
             } else {
@@ -90,7 +92,11 @@ class MainActivity : AppCompatActivity() {
     // Stop 버튼 클릭 시 데이터 송신.
     inner class StopThread : Thread() {
         override fun run() {
-            dataSend("STOP", totalGameCount.toString(), "${binding.hourText.text}${binding.minuteText.text}")
+            dataSend(
+                "STOP",
+                totalGameCount.toString(),
+                "${binding.hourText.text}${binding.minuteText.text}"
+            )
         }
     }
 
@@ -271,11 +277,13 @@ class MainActivity : AppCompatActivity() {
     // Timer start
     private fun start() {
         totalGameCount++
+        gameCount++
         runOnUiThread {
             binding.startBtn.text = "E N D"
+            binding.gameCountTv.text = gameCount.toString()
             time = 0
             timerTask =
-                timer(period = 60000) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
+                timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
                     val hour = time / 60 // 나눗셈의 몫 (시간 부분)
                     val minute = time % 60 // 나눗셈의 나머지 (분 부분)
 
@@ -292,14 +300,32 @@ class MainActivity : AppCompatActivity() {
     // Timer stop
     private fun stop() {
         runOnUiThread {
+            getGameTime()
             timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
 
             time = 0 // 시간저장 변수 초기화
-            isRunning = false // 현재 진행중인지 판별하기 위한 Boolean변수 false 세팅
             binding.hourText.text = "00" // 시간(시간) 초기화
             binding.minuteText.text = "00" // 시간(분) 초기화
             binding.startBtn.text = "START"
         }
+    }
+
+    // 계산 전까지의 모든 게임 시간을 합쳐주는 기능
+    private fun getGameTime() {
+        // 한자리만 나왔을 경우 십의 자리를 0으로 바꿔주는 포맷
+        val df = DecimalFormat("00")
+
+        totalTimeMinutes += binding.minuteText.text.toString().toInt()
+        val exceedMinutes = totalTimeMinutes / 60
+        totalTimeMinutes %= 60
+        totalTimeHour = binding.hourText.text.toString().toInt() + exceedMinutes
+
+        // format 변환
+        val totalTimeHourFormat = df.format(totalTimeMinutes)
+        val totalTimeMinutesFormat = df.format(totalTimeHour)
+
+        binding.totalHourTimeTv.text = totalTimeHourFormat
+        binding.totalMinutesTimeTv.text = totalTimeMinutesFormat
     }
 
     // 앱 종료 시
