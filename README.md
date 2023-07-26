@@ -9,25 +9,50 @@
   - ~~IP 주소를 적는 EditText 생성~~
   - ~~저장 버튼 클릭 시 IP 주소와 테이블 번호 전달~~
   - ~~취소 버튼 시 타이머 화면으로 되돌아가기~~
+- START 버튼
+  - 게임 누른 사람 식별하기 위해 무음 셀프카메라 찍히는 기능
+  - 전체 게임수 + 1 (화면에 안보이게)
+- 화면 상단에 계산하기 전까지 게임 수, 시간 합계 보이게 하기
 - 기기 실행 시 자동으로 앱 실행시키기
 - 앱 실행중에 전체 화면으로 보이게 하기
 
 # 통신
-- 서버에서 강제로 타이머 실행, 종료시키기
-  - Server로부터 START 메세지를 받으면 타이머를 시작시킨다.
-  - Server로부터 END 메세지를 받으면 타이머를 종료시킨다.
-- 1분에 1회 Client에서 Server로 STATUS 메세지를 보낸다.
-- Server로부터 POLL 메세지를 받으면 Server로 STATUS 메세지를 보내준다.
+- Server에서 Client로 보내는 데이터
+  - START
+    - 타이머를 시작시킨다.
+  - END
+    - 타이머를 종료시킨다.
+  - POLL
+    - 작동 중인지 STATUS 데이터를 보내준다.
+  - CLOSE
+    - 게임 전체 수를 초기화 시킨다.
+  - RESET
+    - 계산된 게임에서의 판 수를 초기화 시킨다.
+- Client에서 Server로 보내는 데이터
+  - START
+    - 게임을 시작하겠다는 신호를 보낸다.
+  - END
+    - 게임을 끝내겠다는 신호를 보낸다.
+  - STATUS
+    - 1분에 1회 메세지를 보낸다.
+    - POLL 신호를 받았을 때 응답해준다.
 
 # 데이터 형식
-- Function / 현재 시각 / Data / CR(Carriage Return)
-- 타이머 시작을 했을 때 데이터 보내기
-  - 현재시각 - YYMMDD HHMMSS
-  - Data - HHMM
-  - CR은 X0d 로 표시
+- 테이블 번호 / 현재 시각 / Function / (게임 전체 수) / (Data) / CR(Carriage Return)
+- 테이블 번호
+  - 000 ~ 999
+- 현재시각
+  - YYMMDD HHMMSS
 - Function
-  - START(시작 시)
-  - END(종료 시)
-  - STATUS(Client에서 1분에 1회 보낼 시)
-  - POLL(Server에서 Client 작동 확인 여부)
-  - ANSWER(신호 받았을 시 답)
+  - START
+  - END
+  - STATUS
+  - POLL
+  - CLOSE
+  - RESET
+- 게임 전체 수
+  - 000 ~ 999
+- Data
+  - HHMM
+- CR
+  - x0d
