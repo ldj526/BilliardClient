@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var tableNumber: SharedPreferences
     lateinit var ipAddress: SharedPreferences
     private lateinit var socket: Socket
+    private var totalGameCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,14 +83,14 @@ class MainActivity : AppCompatActivity() {
     // Start 버튼 클릭 시 데이터 송신.
     inner class StartThread : Thread() {
         override fun run() {
-            dataSend("START")
+            dataSend("START", totalGameCount.toString())
         }
     }
 
     // Stop 버튼 클릭 시 데이터 송신.
     inner class StopThread : Thread() {
         override fun run() {
-            dataSend("STOP")
+            dataSend("STOP", totalGameCount.toString(), "${binding.hourText.text}${binding.minuteText.text}")
         }
     }
 
@@ -232,13 +233,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 데이터 송신
-    private fun dataSend(str: String, timeData: String = "") {
+    private fun dataSend(funcName: String, totalGame: String = "", timeData: String = "") {
         try {
-            val outData = "$str ${getTime()} ${timeData}${Char(13)}"
+            // 세 자리 수가 안될 때 앞에 0을 추가해 줌
+            val tableNumberFormat =
+                tableNumber.getString("number", "NULL").toString().padStart(3, '0')
+            val totalGameFormat = totalGame.padStart(3, '0')
+
+            val outData =
+                "$tableNumberFormat ${getTime()} $funcName $totalGameFormat ${timeData}${Char(13)}"
             val data = outData.toByteArray()
             val output = socket.getOutputStream()
             output.write(data)
-            Log.d(TAG, "$str\\n COMMAND 송신")
+            Log.d(TAG, "$funcName\\n COMMAND 송신")
         } catch (e: IOException) {
             e.printStackTrace()
             Log.d(TAG, "데이터 송신 오류")
@@ -263,6 +270,7 @@ class MainActivity : AppCompatActivity() {
 
     // Timer start
     private fun start() {
+        totalGameCount++
         runOnUiThread {
             binding.startBtn.text = "E N D"
             time = 0
