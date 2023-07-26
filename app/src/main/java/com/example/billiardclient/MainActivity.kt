@@ -235,6 +235,16 @@ class MainActivity : AppCompatActivity() {
             "END" -> {      // 강제로 timer 종료
                 stop()
             }
+            "RESET" -> {
+                runOnUiThread {
+                    binding.totalHourTimeTv.text = "00"
+                    binding.totalMinutesTimeTv.text = "00"
+                    binding.gameCountTv.text = "0"
+                }
+            }
+            "CLOSE" -> {
+                totalGameCount = 0
+            }
         }
     }
 
@@ -321,8 +331,8 @@ class MainActivity : AppCompatActivity() {
         totalTimeHour = binding.hourText.text.toString().toInt() + exceedMinutes
 
         // format 변환
-        val totalTimeHourFormat = df.format(totalTimeMinutes)
-        val totalTimeMinutesFormat = df.format(totalTimeHour)
+        val totalTimeHourFormat = df.format(totalTimeHour)
+        val totalTimeMinutesFormat = df.format(totalTimeMinutes)
 
         binding.totalHourTimeTv.text = totalTimeHourFormat
         binding.totalMinutesTimeTv.text = totalTimeMinutesFormat
