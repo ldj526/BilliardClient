@@ -33,6 +33,7 @@
             android:layout_height="wrap_content"
             android:freezesText="false"
             android:text="00"
+            android:fontFamily="@font/font"
             android:textAllCaps="false"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="150sp" />
@@ -41,6 +42,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=":"
+            android:layout_marginBottom="30dp"
+            android:fontFamily="@font/font"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="150sp" />
 
@@ -50,6 +53,7 @@
             android:layout_height="wrap_content"
             android:freezesText="false"
             android:text="00"
+            android:fontFamily="@font/font"
             android:textAllCaps="false"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="150sp" />
