@@ -3,6 +3,7 @@ package com.example.billiardclient
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -44,6 +45,11 @@ class MainActivity : AppCompatActivity() {
 
         setFullScreen()
 
+        // 사운드 추가
+        val soundPool = SoundPool.Builder().build()
+        val startSound = soundPool.load(this, R.raw.sound1, 1)
+        val endSound = soundPool.load(this, R.raw.sound2, 1)
+
         tableNumber = getSharedPreferences("number", MODE_PRIVATE)
         ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
 
@@ -66,9 +72,11 @@ class MainActivity : AppCompatActivity() {
         // (임시) start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
             if (binding.startBtn.text == "START") {
+                soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                 val startThread = StartThread()
                 startThread.start()
             } else {
+                soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
                 val stopThread = StopThread()
                 stopThread.start()
             }
@@ -345,9 +353,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 앱을 전체화면으로 만들기
-    fun setFullScreen(){
+    fun setFullScreen() {
         // R 버전 이상
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // 상단 ActionBar 제거
             supportActionBar?.hide()
 
@@ -362,7 +370,8 @@ class MainActivity : AppCompatActivity() {
                 // 상태바와 네비게이션 사라지게 한다.
                 controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
                 // Swipe 했을 경우에만 시스템 바 보이게 설정
-                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
 
         }
