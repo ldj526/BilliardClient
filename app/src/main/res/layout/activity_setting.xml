@@ -63,7 +63,8 @@
                     android:id="@+id/tableEt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="18dp" />
+                    android:layout_margin="18dp"
+                    android:inputType="text"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -92,7 +93,8 @@
                     android:id="@+id/ipEt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="18dp" />
+                    android:layout_margin="18dp"
+                    android:inputType="text"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button

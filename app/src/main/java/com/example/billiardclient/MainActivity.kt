@@ -1,7 +1,6 @@
 package com.example.billiardclient
 
 import android.content.ContentValues
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -56,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
-            mutableListOf (
+            mutableListOf(
                 android.Manifest.permission.CAMERA,
                 android.Manifest.permission.RECORD_AUDIO
             ).apply {
@@ -83,11 +82,7 @@ class MainActivity : AppCompatActivity() {
         tableNumber = getSharedPreferences("number", MODE_PRIVATE)
         ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
 
-        // (임시) tcp 연결버튼
-        binding.connectBtn.setOnClickListener {
-            Toast.makeText(applicationContext, "Connect 시도", Toast.LENGTH_SHORT).show()
-            tcpConnect()
-        }
+        tcpConnect()
 
         // Setting 화면에서 입력한 table 번호 가져오기
         val text = "${tableNumber.getString("number", "NULL")}"
@@ -114,25 +109,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // (임시) socket 연결 끊기
-        binding.disconnectBtn.setOnClickListener {
-            try {
-                socket.close()
-                Toast.makeText(applicationContext, "DisConnect", Toast.LENGTH_SHORT).show()
-                binding.disconnectBtn.isEnabled = false
-                binding.connectBtn.isEnabled = true
-            } catch (e: IOException) {
-                e.printStackTrace()
-                Toast.makeText(applicationContext, "DisConnect 실패", Toast.LENGTH_SHORT).show()
-            }
-        }
-
         // 권한에 따른 카메라 실행
         if (allPermissionsGranted()) {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -149,7 +132,7 @@ class MainActivity : AppCompatActivity() {
     inner class StopThread : Thread() {
         override fun run() {
             dataSend(
-                "STOP",
+                "END",
                 totalGameCount.toString(),
                 "${binding.hourText.text}${binding.minuteText.text}"
             )
@@ -259,15 +242,15 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, tmp)
 
                 // carriage return이 들어오면 server로 답주기
-                if (tmp.contains("33")) {       // cr 임시로 3 으로
+                if (tmp.contains("0d")) {
                     tmp2 = String(buffer)
                     Log.d(TAG, tmp2)
                     val token = tmp2.split(' ')     // 받아온 신호 space로 구분하기
-                    Log.d(TAG, token[0])
+                    Log.d(TAG, token[2])
 
 //                    if (tmp2.length - token[0].length != 19) continue
 
-                    checkFunc(token[0])
+                    checkFunc(token[2])
                 }
 
                 Thread.sleep(10)    // Thread 일시 정지
@@ -286,6 +269,7 @@ class MainActivity : AppCompatActivity() {
                 dataSend("STATUS")
             }
             "START" -> {    // 강제로 timer 시작
+                Log.d(TAG, "스타트!!!!!")
                 start()
             }
             "END" -> {      // 강제로 timer 종료
@@ -333,7 +317,7 @@ class MainActivity : AppCompatActivity() {
 
     // 현재 시각 가져오기
     private fun getTime(): String {
-        val formatter = SimpleDateFormat("yyMMdd HHmmss", Locale.KOREA)
+        val formatter = SimpleDateFormat("yyMMddHHmmss", Locale.KOREA)
         val calendar = Calendar.getInstance()
         formatter.timeZone = TimeZone.getTimeZone("Asia/Seoul")
         return formatter.format(calendar.time)
@@ -343,10 +327,8 @@ class MainActivity : AppCompatActivity() {
     // Timer start
     private fun start() {
         totalGameCount++
-        gameCount++
         runOnUiThread {
             binding.startBtn.text = "E N D"
-            binding.gameCountTv.text = gameCount.toString()
             time = 0
             timerTask =
                 timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
@@ -365,8 +347,10 @@ class MainActivity : AppCompatActivity() {
 
     // Timer stop
     private fun stop() {
+        gameCount++
         runOnUiThread {
             getGameTime()
+            binding.gameCountTv.text = gameCount.toString()
             timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
 
             time = 0 // 시간저장 변수 초기화
@@ -395,7 +379,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 앱을 전체화면으로 만들기
-    fun setFullScreen() {
+    private fun setFullScreen() {
         // R 버전 이상
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // 상단 ActionBar 제거
@@ -444,16 +428,18 @@ class MainActivity : AppCompatActivity() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
             }
         }
 
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(contentResolver,
+            .Builder(
+                contentResolver,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
+                contentValues
+            )
             .build()
 
         // Set up image capture listener, which is triggered after photo has
@@ -467,7 +453,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun
-                        onImageSaved(output: ImageCapture.OutputFileResults){
+                        onImageSaved(output: ImageCapture.OutputFileResults) {
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
@@ -482,7 +468,7 @@ class MainActivity : AppCompatActivity() {
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val cameraProvider = cameraProviderFuture.get()
 
             // Preview
             val preview = Preview.Builder()
@@ -490,7 +476,6 @@ class MainActivity : AppCompatActivity() {
                 .also {
                     it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
                 }
-
             imageCapture = ImageCapture.Builder()
                 .build()
 
@@ -503,9 +488,10 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture)
+                    this, cameraSelector, preview, imageCapture
+                )
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
@@ -515,21 +501,25 @@ class MainActivity : AppCompatActivity() {
     // 카메라 권한
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+            baseContext, it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     // 권한 설정했으면 카메라 실행 / 아니면 Toast 메세지
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray) {
+        IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera()
             } else {
-                Toast.makeText(this,
+                Toast.makeText(
+                    this,
                     "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT).show()
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish()
             }
         }
