@@ -155,7 +155,7 @@
                 android:autoSizeTextType="uniform"
                 android:clickable="true"
                 android:maxLines="1"
-                android:text="START"
+                android:text="CONNECT"
                 android:tint="#FFFFFF"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

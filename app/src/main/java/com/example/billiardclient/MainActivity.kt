@@ -1,6 +1,7 @@
 package com.example.billiardclient
 
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -24,6 +26,7 @@ import androidx.core.content.ContextCompat
 import com.example.billiardclient.databinding.ActivityMainBinding
 import java.io.IOException
 import java.net.Socket
+import java.net.SocketException
 import java.net.UnknownHostException
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -82,8 +85,6 @@ class MainActivity : AppCompatActivity() {
         tableNumber = getSharedPreferences("number", MODE_PRIVATE)
         ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
 
-        tcpConnect()
-
         // Setting 화면에서 입력한 table 번호 가져오기
         val text = "${tableNumber.getString("number", "NULL")}"
         binding.tableNumber.text = text
@@ -97,21 +98,27 @@ class MainActivity : AppCompatActivity() {
 
         // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
-            if (binding.startBtn.text == "START") {
-                takePhoto()
-                soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
-                val startThread = StartThread()
-                startThread.start()
-            } else {
-                soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
-                val stopThread = StopThread()
-                stopThread.start()
+            when (binding.startBtn.text) {
+                "CONNECT" -> {
+                    tcpConnect()
+                }
+                "START" -> {
+                    takePhoto()
+                    soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                    val startThread = StartThread()
+                    startThread.start()
+                }
+                else -> {
+                    soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                    val stopThread = StopThread()
+                    stopThread.start()
+                }
             }
         }
 
         // 권한에 따른 카메라 실행
         if (allPermissionsGranted()) {
-            startCamera()
+//            startCamera()
         } else {
             ActivityCompat.requestPermissions(
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
@@ -150,6 +157,7 @@ class MainActivity : AppCompatActivity() {
                     val addr = socket.inetAddress
                     val tmp = addr.hostAddress
                     Toast.makeText(applicationContext, "Connected", Toast.LENGTH_LONG).show()
+                    binding.startBtn.text = "START"
                 })
 
                 // 1분마다 Server로 신호를 보내줌
@@ -161,40 +169,23 @@ class MainActivity : AppCompatActivity() {
                 dataReceive()
 
             } catch (uhe: UnknownHostException) { // 소켓 생성 시 전달되는 호스트(www.unknown-host.com)의 IP를 식별할 수 없음.
-                Log.e(TAG, " 생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
+                uhe.printStackTrace()
+                Log.e(TAG, "생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
                 runOnUiThread {
-                    Toast.makeText(
-                        applicationContext,
-                        "Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d(TAG, "Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
+                    errorDialog("생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
                 }
             } catch (ioe: IOException) { // 소켓 생성 과정에서 I/O 에러 발생.
-                Log.e(TAG, " 생성 Error : 네트워크 응답 없음")
+                Log.e(TAG, "생성 Error : 네트워크 응답 없음")
                 runOnUiThread {
-                    Toast.makeText(
-                        applicationContext,
-                        "Error : 네트워크 응답 없음",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d(TAG, "네트워크 연결 오류")
+                    errorDialog("생성 Error : 네트워크 응답 없음")
                 }
             } catch (se: SecurityException) { // security manager에서 허용되지 않은 기능 수행.
                 Log.e(
                     TAG,
-                    " 생성 Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)"
+                    "생성 Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)"
                 )
                 runOnUiThread {
-                    Toast.makeText(
-                        applicationContext,
-                        "Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d(
-                        TAG,
-                        "Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)"
-                    )
+                    errorDialog("Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)")
                 }
             } catch (le: IllegalArgumentException) { // 소켓 생성 시 전달되는 포트 번호(65536)이 허용 범위(0~65535)를 벗어남.
                 Log.e(
@@ -202,15 +193,7 @@ class MainActivity : AppCompatActivity() {
                     " 생성 Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)"
                 )
                 runOnUiThread {
-                    Toast.makeText(
-                        applicationContext,
-                        " Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d(
-                        TAG,
-                        "Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)"
-                    )
+                    errorDialog("Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)")
                 }
             }
         }
@@ -503,6 +486,17 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // 에러 나타내주는 다이얼로그 생성
+    private fun errorDialog(errorMessage: String) {
+        val builder = AlertDialog.Builder(this)
+            .setTitle("경고")
+            .setMessage(errorMessage)
+            .setPositiveButton("확인", DialogInterface.OnClickListener { dialog, which ->
+                Toast.makeText(this, "확인", Toast.LENGTH_SHORT).show()
+            })
+        builder.show()
     }
 
     // 권한 설정했으면 카메라 실행 / 아니면 Toast 메세지
