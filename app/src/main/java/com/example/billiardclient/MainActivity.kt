@@ -1,7 +1,6 @@
 package com.example.billiardclient
 
 import android.content.ContentValues
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -14,7 +13,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -25,6 +23,8 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.billiardclient.databinding.ActivityMainBinding
+import com.example.billiardclient.utils.CustomDialog
+import com.example.billiardclient.utils.TimeUtils
 import java.io.IOException
 import java.net.Socket
 import java.net.UnknownHostException
@@ -159,9 +159,6 @@ class MainActivity : AppCompatActivity() {
                 socket = Socket(hostname, port)
                 Log.d(TAG, "Socket 생성, 연결.")
                 runOnUiThread(Runnable {
-                    val addr = socket.inetAddress
-                    val tmp = addr.hostAddress
-                    Toast.makeText(applicationContext, "Connected", Toast.LENGTH_LONG).show()
                     binding.startBtn.text = "START"
                 })
 
@@ -177,12 +174,15 @@ class MainActivity : AppCompatActivity() {
                 uhe.printStackTrace()
                 Log.e(TAG, "생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
                 runOnUiThread {
-                    errorDialog("생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
+                    CustomDialog("호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)").show(
+                        supportFragmentManager,
+                        "CustomDialog"
+                    )
                 }
             } catch (ioe: IOException) { // 소켓 생성 과정에서 I/O 에러 발생.
                 Log.e(TAG, "생성 Error : 네트워크 응답 없음")
                 runOnUiThread {
-                    errorDialog("생성 Error : 네트워크 응답 없음")
+                    CustomDialog("네트워크 응답 없음").show(supportFragmentManager, "CustomDialog")
                 }
             } catch (se: SecurityException) { // security manager에서 허용되지 않은 기능 수행.
                 Log.e(
@@ -190,7 +190,10 @@ class MainActivity : AppCompatActivity() {
                     "생성 Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)"
                 )
                 runOnUiThread {
-                    errorDialog("Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)")
+                    CustomDialog("보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)").show(
+                        supportFragmentManager,
+                        "CustomDialog"
+                    )
                 }
             } catch (le: IllegalArgumentException) { // 소켓 생성 시 전달되는 포트 번호(65536)이 허용 범위(0~65535)를 벗어남.
                 Log.e(
@@ -198,7 +201,10 @@ class MainActivity : AppCompatActivity() {
                     " 생성 Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)"
                 )
                 runOnUiThread {
-                    errorDialog("Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)")
+                    CustomDialog("메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)").show(
+                        supportFragmentManager,
+                        "CustomDialog"
+                    )
                 }
             }
         }
@@ -283,7 +289,11 @@ class MainActivity : AppCompatActivity() {
             val totalGameFormat = totalGame.padStart(3, '0')
 
             val outData =
-                "$tableNumberFormat ${getTime()} $funcName $totalGameFormat ${timeData}${Char(13)}"
+                "$tableNumberFormat ${TimeUtils().getTime()} $funcName $totalGameFormat ${timeData}${
+                    Char(
+                        13
+                    )
+                }"
             val data = outData.toByteArray()
             val output = socket.getOutputStream()
             output.write(data)
@@ -300,15 +310,6 @@ class MainActivity : AppCompatActivity() {
         for (b in a) sb.append(String.format("%02x ", b.toInt()))   // and 0xff
         return sb.toString()
     }
-
-    // 현재 시각 가져오기
-    private fun getTime(): String {
-        val formatter = SimpleDateFormat("yyMMddHHmmss", Locale.KOREA)
-        val calendar = Calendar.getInstance()
-        formatter.timeZone = TimeZone.getTimeZone("Asia/Seoul")
-        return formatter.format(calendar.time)
-    }
-
 
     // Timer start
     private fun start() {
@@ -488,17 +489,6 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // 에러 나타내주는 다이얼로그 생성
-    private fun errorDialog(errorMessage: String) {
-        val builder = AlertDialog.Builder(this)
-            .setTitle("경고")
-            .setMessage(errorMessage)
-            .setPositiveButton("확인", DialogInterface.OnClickListener { dialog, which ->
-                Toast.makeText(this, "확인", Toast.LENGTH_SHORT).show()
-            })
-        builder.show()
     }
 
     // 권한 설정했으면 카메라 실행 / 아니면 Toast 메세지
