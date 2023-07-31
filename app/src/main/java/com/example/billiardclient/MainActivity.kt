@@ -21,6 +21,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.billiardclient.databinding.ActivityMainBinding
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private var totalTimeMinutes = 0
     private var hour = 0
     private var minute = 0
+    lateinit var viewFinder: PreviewView
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -72,6 +74,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        viewFinder = binding.viewFinder
 
         socket = Socket()
 
@@ -118,7 +122,7 @@ class MainActivity : AppCompatActivity() {
 
         // 권한에 따른 카메라 실행
         if (allPermissionsGranted()) {
-//            startCamera()
+            startCamera()
         } else {
             ActivityCompat.requestPermissions(
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
@@ -455,7 +459,7 @@ class MainActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
+                    it.setSurfaceProvider(viewFinder.surfaceProvider)
                 }
             imageCapture = ImageCapture.Builder()
                 .build()
