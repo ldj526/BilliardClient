@@ -26,9 +26,7 @@ import androidx.core.content.ContextCompat
 import com.example.billiardclient.databinding.ActivityMainBinding
 import java.io.IOException
 import java.net.Socket
-import java.net.SocketException
 import java.net.UnknownHostException
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -49,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private var gameCount = 0
     private var totalTimeHour = 0
     private var totalTimeMinutes = 0
+    private var hour = 0
+    private var minute = 0
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -138,10 +138,11 @@ class MainActivity : AppCompatActivity() {
     // Stop 버튼 클릭 시 데이터 송신.
     inner class StopThread : Thread() {
         override fun run() {
+            getGameTime()
             dataSend(
                 "END",
                 totalGameCount.toString(),
-                "${binding.hourText.text}${binding.minuteText.text}"
+                "${String.format("%02d", totalTimeHour)}${String.format("%02d", totalTimeMinutes)}"
             )
         }
     }
@@ -231,8 +232,6 @@ class MainActivity : AppCompatActivity() {
                     val token = tmp2.split(' ')     // 받아온 신호 space로 구분하기
                     Log.d(TAG, token[2])
 
-//                    if (tmp2.length - token[0].length != 19) continue
-
                     checkFunc(token[2])
                 }
 
@@ -315,14 +314,16 @@ class MainActivity : AppCompatActivity() {
             time = 0
             timerTask =
                 timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
-                    val hour = time / 60 // 나눗셈의 몫 (시간 부분)
-                    val minute = time % 60 // 나눗셈의 나머지 (분 부분)
+                    hour = time / 60 // 나눗셈의 몫 (시간 부분)
+                    minute = time % 60 // 나눗셈의 나머지 (분 부분)
 
                     time++ // period = 60000으로 1분마다 time를 1씩 증가하게 됩니다
 
                     runOnUiThread {
-                        binding.hourText.text = String.format("%02d", hour)
-                        binding.minuteText.text = String.format("%02d", minute)
+                        binding.hourTensText.text = String.format("%01d", hour / 10)
+                        binding.hourUnitsText.text = String.format("%01d", hour % 10)
+                        binding.minuteTensText.text = String.format("%01d", minute / 10)
+                        binding.minuteUnitsText.text = String.format("%01d", minute % 10)
                     }
                 }
         }
@@ -332,33 +333,30 @@ class MainActivity : AppCompatActivity() {
     private fun stop() {
         gameCount++
         runOnUiThread {
-            getGameTime()
             binding.gameCountTv.text = gameCount.toString()
             timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
 
             time = 0 // 시간저장 변수 초기화
-            binding.hourText.text = "00" // 시간(시간) 초기화
-            binding.minuteText.text = "00" // 시간(분) 초기화
+            // 시간초기화
+            binding.hourTensText.text = "0"
+            binding.hourUnitsText.text = "0"
+            binding.minuteTensText.text = "0"
+            binding.minuteUnitsText.text = "0"
             binding.startBtn.text = "START"
+            binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
+            binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
+
+            hour = 0
+            minute = 0
         }
     }
 
     // 계산 전까지의 모든 게임 시간을 합쳐주는 기능
     private fun getGameTime() {
-        // 한자리만 나왔을 경우 십의 자리를 0으로 바꿔주는 포맷
-        val df = DecimalFormat("00")
-
-        totalTimeMinutes += binding.minuteText.text.toString().toInt()
+        totalTimeMinutes += minute
         val exceedMinutes = totalTimeMinutes / 60
         totalTimeMinutes %= 60
-        totalTimeHour = binding.hourText.text.toString().toInt() + exceedMinutes
-
-        // format 변환
-        val totalTimeHourFormat = df.format(totalTimeHour)
-        val totalTimeMinutesFormat = df.format(totalTimeMinutes)
-
-        binding.totalHourTimeTv.text = totalTimeHourFormat
-        binding.totalMinutesTimeTv.text = totalTimeMinutesFormat
+        totalTimeHour += exceedMinutes
     }
 
     // 앱을 전체화면으로 만들기
