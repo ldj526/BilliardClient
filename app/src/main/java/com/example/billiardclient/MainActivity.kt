@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private var hour = 0
     private var minute = 0
     lateinit var viewFinder: PreviewView
+    private var backgroundCode = 0
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -94,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         binding.tableNumber.text = text
 
         // 테이블 번호 LongClick 시 Setting 화면으로 이동
-        binding.tableNumber.setOnLongClickListener {
+        binding.settingBtn.setOnLongClickListener {
             val intent = Intent(this, SettingActivity::class.java)
             startActivity(intent)
             true
@@ -102,17 +103,17 @@ class MainActivity : AppCompatActivity() {
 
         // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
-            when (binding.startBtn.text) {
-                "CONNECT" -> {
+            when (backgroundCode) {
+                0 -> {
                     tcpConnect()
                 }
-                "START" -> {
+                1 -> {
                     takePhoto()
                     soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                     val startThread = StartThread()
                     startThread.start()
                 }
-                else -> {
+                2 -> {
                     soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
                     val stopThread = StopThread()
                     stopThread.start()
@@ -159,7 +160,8 @@ class MainActivity : AppCompatActivity() {
                 socket = Socket(hostname, port)
                 Log.d(TAG, "Socket 생성, 연결.")
                 runOnUiThread(Runnable {
-                    binding.startBtn.text = "START"
+                    binding.startBtn.setBackgroundResource(R.drawable.startbutton)
+                    backgroundCode = 1
                 })
 
                 // 1분마다 Server로 신호를 보내줌
@@ -315,7 +317,8 @@ class MainActivity : AppCompatActivity() {
     private fun start() {
         totalGameCount++
         runOnUiThread {
-            binding.startBtn.text = "E N D"
+            binding.startBtn.setBackgroundResource(R.drawable.endbutton)
+            backgroundCode = 2
             time = 0
             timerTask =
                 timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
@@ -347,7 +350,8 @@ class MainActivity : AppCompatActivity() {
             binding.hourUnitsText.text = "0"
             binding.minuteTensText.text = "0"
             binding.minuteUnitsText.text = "0"
-            binding.startBtn.text = "START"
+            binding.startBtn.setBackgroundResource(R.drawable.startbutton)
+            backgroundCode = 1
             binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
             binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
 
