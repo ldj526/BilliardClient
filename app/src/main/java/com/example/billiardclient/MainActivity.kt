@@ -1,5 +1,6 @@
 package com.example.billiardclient
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Intent
 import android.content.SharedPreferences
@@ -9,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -55,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var minute = 0
     lateinit var viewFinder: PreviewView
     private var backgroundCode = 0
+    private var pressTime = 0L
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
@@ -74,6 +77,7 @@ class MainActivity : AppCompatActivity() {
             }.toTypedArray()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
@@ -98,17 +102,23 @@ class MainActivity : AppCompatActivity() {
         binding.tableNumber.text = text
 
         // 테이블 번호 LongClick 시 Setting 화면으로 이동
-        binding.settingBtn.setOnLongClickListener {
+        binding.settingBtn.setOnTouchListener { v, event ->
             // 잠금이 걸려있으면 비밀번호 화면으로
-            if (AppLock(this).isPassLockSet()) {
-                val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
-                    putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                pressTime = System.currentTimeMillis()
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                if ((System.currentTimeMillis() - pressTime) > 5000) {
+                    if (AppLock(this).isPassLockSet()) {
+                        val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
+                            putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
+                        }
+                        startActivityForResult(intent, AppLockConst.UNLOCK_PASSWORD)
+                    } else {
+                        // 잠금이 없다면 바로 Setting 화면으로
+                        val intent = Intent(this, SettingActivity::class.java)
+                        startActivity(intent)
+                    }
                 }
-                startActivityForResult(intent, AppLockConst.UNLOCK_PASSWORD)
-            } else {
-                // 잠금이 없다면 바로 Setting 화면으로
-                val intent = Intent(this, SettingActivity::class.java)
-                startActivity(intent)
             }
             true
         }
