@@ -23,6 +23,9 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.billiardclient.databinding.ActivityMainBinding
+import com.example.billiardclient.lock.AppLock
+import com.example.billiardclient.lock.AppLockConst
+import com.example.billiardclient.lock.AppLockPasswordActivity
 import com.example.billiardclient.utils.CustomDialog
 import com.example.billiardclient.utils.TimeUtils
 import java.io.IOException
@@ -96,8 +99,17 @@ class MainActivity : AppCompatActivity() {
 
         // 테이블 번호 LongClick 시 Setting 화면으로 이동
         binding.settingBtn.setOnLongClickListener {
-            val intent = Intent(this, SettingActivity::class.java)
-            startActivity(intent)
+            // 잠금이 걸려있으면 비밀번호 화면으로
+            if (AppLock(this).isPassLockSet()) {
+                val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
+                    putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
+                }
+                startActivityForResult(intent, AppLockConst.UNLOCK_PASSWORD)
+            } else {
+                // 잠금이 없다면 바로 Setting 화면으로
+                val intent = Intent(this, SettingActivity::class.java)
+                startActivity(intent)
+            }
             true
         }
 

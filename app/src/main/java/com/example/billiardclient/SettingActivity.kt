@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import com.example.billiardclient.databinding.ActivitySettingBinding
+import com.example.billiardclient.lock.AppLockSettingActivity
 
 class SettingActivity : AppCompatActivity() {
 
@@ -42,8 +43,15 @@ class SettingActivity : AppCompatActivity() {
         binding.cancelBtn.setOnClickListener {
             // MainActivity 로 이동
             val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             startActivity(intent)
             finish()
+        }
+
+        // 비밀번호 세팅 화면으로 이동
+        binding.settingPwd.setOnClickListener {
+            val intent = Intent(this, AppLockSettingActivity::class.java)
+            startActivity(intent)
         }
     }
 
