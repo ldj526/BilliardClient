@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
                 socket = Socket(hostname, port)
                 Log.d(TAG, "Socket 생성, 연결.")
                 runOnUiThread(Runnable {
-                    binding.startBtn.setBackgroundResource(R.drawable.startbutton)
+                    binding.startBtn.setBackgroundResource(R.drawable.start_button)
                     backgroundCode = 1
                 })
 
@@ -329,7 +329,7 @@ class MainActivity : AppCompatActivity() {
     private fun start() {
         totalGameCount++
         runOnUiThread {
-            binding.startBtn.setBackgroundResource(R.drawable.endbutton)
+            binding.startBtn.setBackgroundResource(R.drawable.end_button)
             backgroundCode = 2
             time = 0
             timerTask =
@@ -362,7 +362,7 @@ class MainActivity : AppCompatActivity() {
             binding.hourUnitsText.text = "0"
             binding.minuteTensText.text = "0"
             binding.minuteUnitsText.text = "0"
-            binding.startBtn.setBackgroundResource(R.drawable.startbutton)
+            binding.startBtn.setBackgroundResource(R.drawable.start_button)
             backgroundCode = 1
             binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
             binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)

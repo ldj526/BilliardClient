@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_weight="1"
-    android:background="@drawable/emptystartbackground"
+    android:background="@drawable/main_background"
     android:orientation="horizontal"
     tools:context=".MainActivity">
 
@@ -29,19 +29,10 @@
 
             <TextView
                 android:id="@+id/tableNumber"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autoSizeMaxTextSize="130sp"
-                android:autoSizeMinTextSize="80sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="@font/bauhausmedium"
+                style="@style/TimerTextView"
                 android:gravity="center"
                 android:maxLines="1"
-                android:text="0"
                 android:textColor="#FF0000"
-                android:textSize="130sp"
-                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -56,78 +47,35 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textView4"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:text="Total Time"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <TextView
                 android:id="@+id/totalHourTimeTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/bauhausmedium"
+                style="@style/TotalNumberStyle"
                 android:text="00"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/gameCountTv"
                 app:layout_constraintTop_toBottomOf="@+id/gameCountTv" />
 
             <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/colon"
+                style="@style/TotalNumberStyle"
                 android:layout_marginStart="3dp"
-                android:fontFamily="@font/bauhausmedium"
                 android:text=":"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/totalHourTimeTv"
                 app:layout_constraintStart_toEndOf="@+id/totalHourTimeTv" />
 
             <TextView
                 android:id="@+id/totalMinutesTimeTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/TotalNumberStyle"
                 android:layout_marginStart="3dp"
-                android:fontFamily="@font/bauhausmedium"
                 android:text="00"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/totalHourTimeTv"
-                app:layout_constraintStart_toEndOf="@+id/textView5"
+                app:layout_constraintStart_toEndOf="@+id/colon"
                 app:layout_constraintTop_toTopOf="@+id/totalHourTimeTv" />
-
-
-            <TextView
-                android:id="@+id/textView7"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:text="Total Number"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toTopOf="@+id/textView4"
-                app:layout_constraintStart_toStartOf="parent" />
 
             <TextView
                 android:id="@+id/gameCountTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/TotalNumberStyle"
                 android:layout_marginTop="9dp"
                 android:layout_marginEnd="42dp"
-                android:fontFamily="@font/bauhausmedium"
                 android:text="0"
-                android:textColor="#FFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -160,95 +108,32 @@
 
             <TextView
                 android:id="@+id/hourTensText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:autoSizeMaxTextSize="250sp"
-                android:autoSizeMinTextSize="100sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="@font/bauhausmedium"
-                android:freezesText="false"
-                android:text="0"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                android:textColor="#FFFFFF"
-                android:textSize="130sp"
-                android:textStyle="bold"
+                style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/hourUnitsText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/TimerTextView"
                 android:layout_marginStart="53dp"
-                android:autoSizeMaxTextSize="250sp"
-                android:autoSizeMinTextSize="100sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="@font/bauhausmedium"
-                android:freezesText="false"
-                android:text="0"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                android:textColor="#FFFFFF"
-                android:textSize="130sp"
-                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/hourTensText"
                 app:layout_constraintStart_toEndOf="@+id/hourTensText"
                 app:layout_constraintTop_toTopOf="@+id/hourTensText" />
 
             <TextView
-                android:id="@+id/colonsText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="36dp"
-                android:fontFamily="@font/mentone_semibol"
-                android:text=":"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                android:textColor="#FFFFFF"
-                android:textSize="120sp"
-                android:textStyle="bold"
-                android:visibility="gone"
+                android:id="@+id/minuteTensText"
+                android:layout_marginStart="82dp"
+                style="@style/TimerTextView"
+                app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
                 app:layout_constraintStart_toEndOf="@+id/hourUnitsText"
                 app:layout_constraintTop_toTopOf="@+id/hourUnitsText" />
 
             <TextView
-                android:id="@+id/minuteTensText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="82dp"
-                android:autoSizeMaxTextSize="250sp"
-                android:autoSizeMinTextSize="100sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="@font/bauhausmedium"
-                android:freezesText="false"
-                android:text="0"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                android:textColor="#FFFFFF"
-                android:textSize="130sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
-                app:layout_constraintStart_toEndOf="@+id/colonsText"
-                app:layout_constraintTop_toTopOf="@+id/hourUnitsText" />
-
-            <TextView
                 android:id="@+id/minuteUnitsText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginStart="53dp"
-                android:autoSizeMaxTextSize="250sp"
-                android:autoSizeMinTextSize="100sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:fontFamily="@font/bauhausmedium"
-                android:freezesText="false"
-                android:text="0"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                android:textColor="#FFFFFF"
-                android:textSize="130sp"
-                android:textStyle="bold"
+                style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/minuteTensText"
                 app:layout_constraintStart_toEndOf="@+id/minuteTensText"
                 app:layout_constraintTop_toTopOf="@+id/minuteTensText" />
@@ -262,7 +147,7 @@
                 android:autoSizeMinTextSize="40sp"
                 android:autoSizeStepGranularity="2sp"
                 android:autoSizeTextType="uniform"
-                android:background="@drawable/connectbtn"
+                android:background="@drawable/connect_btn"
                 android:clickable="true"
                 android:gravity="center"
                 android:maxLines="1"

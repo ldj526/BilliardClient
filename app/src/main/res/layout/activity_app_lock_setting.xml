@@ -22,7 +22,7 @@
                 android:id="@+id/backImg"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:src="?attr/actionModeCloseDrawable"/>
+                android:src="?attr/actionModeCloseDrawable" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -42,32 +42,26 @@
 
     </LinearLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/setLockBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        style="@style/PasswordSettingBtnStyle"
         android:text="잠금 설정"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/setDelLockBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        style="@style/PasswordSettingBtnStyle"
         android:text="잠금 비활성화"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.473"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/setLockBtn" />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/changePwdBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        style="@style/PasswordSettingBtnStyle"
         android:text="암호 변경"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
