@@ -81,8 +81,8 @@
 
             <Button
                 android:id="@+id/settingBtn"
-                android:layout_width="44dp"
-                android:layout_height="42dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginBottom="10dp"
                 android:background="#00FF0000"
@@ -107,6 +107,18 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/curStateTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="현재 상태"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
                 android:id="@+id/hourTensText"
                 android:layout_marginStart="32dp"
                 style="@style/TimerTextView"
@@ -117,14 +129,14 @@
             <TextView
                 android:id="@+id/hourUnitsText"
                 style="@style/TimerTextView"
-                android:layout_marginStart="53dp"
+                android:layout_marginStart="50dp"
                 app:layout_constraintBottom_toBottomOf="@+id/hourTensText"
                 app:layout_constraintStart_toEndOf="@+id/hourTensText"
                 app:layout_constraintTop_toTopOf="@+id/hourTensText" />
 
             <TextView
                 android:id="@+id/minuteTensText"
-                android:layout_marginStart="82dp"
+                android:layout_marginStart="75dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
                 app:layout_constraintStart_toEndOf="@+id/hourUnitsText"
@@ -132,27 +144,20 @@
 
             <TextView
                 android:id="@+id/minuteUnitsText"
-                android:layout_marginStart="53dp"
+                android:layout_marginStart="49dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/minuteTensText"
                 app:layout_constraintStart_toEndOf="@+id/minuteTensText"
                 app:layout_constraintTop_toTopOf="@+id/minuteTensText" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/startBtn"
                 android:layout_width="72dp"
                 android:layout_height="68dp"
                 android:layout_marginEnd="16dp"
-                android:autoSizeMaxTextSize="60sp"
-                android:autoSizeMinTextSize="40sp"
-                android:autoSizeStepGranularity="2sp"
-                android:autoSizeTextType="uniform"
-                android:background="@drawable/connect_btn"
-                android:clickable="true"
-                android:gravity="center"
+                android:background="@drawable/connect_button_ripple"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#000000"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

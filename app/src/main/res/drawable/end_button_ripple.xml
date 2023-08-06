@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#66F3EFEF">
+    <item>
+        <layer-list>
+            <item
+                android:drawable="@drawable/end_button"
+                android:layout_width="72dp"
+                android:layout_height="68dp">
+            </item>
+        </layer-list>
+    </item>
+</ripple>

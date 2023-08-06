@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
             if (event.action == MotionEvent.ACTION_DOWN) {
                 pressTime = System.currentTimeMillis()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                if ((System.currentTimeMillis() - pressTime) > 5000) {
+                if ((System.currentTimeMillis() - pressTime) > 1000) {
                     if (AppLock(this).isPassLockSet()) {
                         val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
                             putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() {
                 socket = Socket(hostname, port)
                 Log.d(TAG, "Socket 생성, 연결.")
                 runOnUiThread(Runnable {
-                    binding.startBtn.setBackgroundResource(R.drawable.start_button)
+                    binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
                     backgroundCode = 1
                 })
 
@@ -339,7 +339,7 @@ class MainActivity : AppCompatActivity() {
     private fun start() {
         totalGameCount++
         runOnUiThread {
-            binding.startBtn.setBackgroundResource(R.drawable.end_button)
+            binding.startBtn.setBackgroundResource(R.drawable.end_button_ripple)
             backgroundCode = 2
             time = 0
             timerTask =
@@ -372,7 +372,7 @@ class MainActivity : AppCompatActivity() {
             binding.hourUnitsText.text = "0"
             binding.minuteTensText.text = "0"
             binding.minuteUnitsText.text = "0"
-            binding.startBtn.setBackgroundResource(R.drawable.start_button)
+            binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
             backgroundCode = 1
             binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
             binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
