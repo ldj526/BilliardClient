@@ -62,7 +62,11 @@ class MainActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
 
+    var startTime = ""
+    var endTime = ""
+
     companion object {
+        private const val LIMIT_TIME = 1.0
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -125,6 +129,7 @@ class MainActivity : AppCompatActivity() {
 
         // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
+            Log.d("MainActivity", backgroundCode.toString())
             when (backgroundCode) {
                 0 -> {
                     tcpConnect()
@@ -159,6 +164,7 @@ class MainActivity : AppCompatActivity() {
     inner class StartThread : Thread() {
         override fun run() {
             dataSend("START", totalGameCount.toString())
+            startTime = TimeUtils().getTime()
         }
     }
 
@@ -171,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                 totalGameCount.toString(),
                 "${String.format("%02d", totalTimeHour)}${String.format("%02d", totalTimeMinutes)}"
             )
+            endTime = TimeUtils().getTime()
         }
     }
 
@@ -181,14 +188,13 @@ class MainActivity : AppCompatActivity() {
                 val port = 7777
                 socket = Socket(hostname, port)
                 Log.d(TAG, "Socket 생성, 연결.")
+                backgroundCode = 1
                 runOnUiThread(Runnable {
                     binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
-                    backgroundCode = 1
                 })
 
                 // 1분마다 Server로 신호를 보내줌
                 statusTimerTask = timer(period = 60000) {
-                    time++
                     dataSend("STATUS")
                 }
 
@@ -266,7 +272,17 @@ class MainActivity : AppCompatActivity() {
                     val token = tmp2.split(' ')     // 받아온 신호 space로 구분하기
                     Log.d(TAG, token[2])
 
-                    checkFunc(token[2])
+
+                    if (checkReceiveTime(token[2])) {
+                        checkFunc(token[2])
+                    } else {
+                        runOnUiThread {
+                            CustomDialog("네트워크 오류").show(
+                                supportFragmentManager,
+                                "CustomDialog"
+                            )
+                        }
+                    }
                 }
 
                 Thread.sleep(10)    // Thread 일시 정지
@@ -427,6 +443,23 @@ class MainActivity : AppCompatActivity() {
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
+    }
+
+    // 데이터 보낸 시간과 받은 시간을 비교해 데이터 처리
+    private fun checkReceiveTime(funcName: String): Boolean {
+        val curTime = TimeUtils().getTime()
+        if (funcName == "START") {
+            if (curTime.toDouble() - startTime.toDouble() > LIMIT_TIME) {
+                startTime = ""
+                return false
+            }
+        } else if (funcName == "END") {
+            if (curTime.toDouble() - endTime.toDouble() > LIMIT_TIME) {
+                endTime = ""
+                return false
+            }
+        }
+        return true
     }
 
     // 사진 저장
