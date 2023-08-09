@@ -31,6 +31,7 @@ import com.example.billiardclient.lock.AppLockPasswordActivity
 import com.example.billiardclient.utils.CustomDialog
 import com.example.billiardclient.utils.TimeUtils
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.UnknownHostException
 import java.text.SimpleDateFormat
@@ -61,6 +62,8 @@ class MainActivity : AppCompatActivity() {
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
+
+    private var functionName = ""
 
     var startTime = ""
     var endTime = ""
@@ -139,11 +142,13 @@ class MainActivity : AppCompatActivity() {
                     soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                     val startThread = StartThread()
                     startThread.start()
+                    startTimer()
                 }
                 2 -> {
                     soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
                     val stopThread = StopThread()
                     stopThread.start()
+                    stopTimer()
                 }
             }
         }
@@ -186,8 +191,9 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             try { //클라이언트 소켓 생성
                 val port = 7777
-                socket = Socket(hostname, port)
-                Log.d(TAG, "Socket 생성, 연결.")
+                socket = Socket()
+                socket.connect(InetSocketAddress(hostname, port), 1000)
+                Log.d(TAG, "소켓 연결")
                 backgroundCode = 1
                 runOnUiThread(Runnable {
                     binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
@@ -201,8 +207,8 @@ class MainActivity : AppCompatActivity() {
                 dataReceive()
 
             } catch (uhe: UnknownHostException) { // 소켓 생성 시 전달되는 호스트(www.unknown-host.com)의 IP를 식별할 수 없음.
-                uhe.printStackTrace()
                 Log.e(TAG, "생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
+                uhe.printStackTrace()
                 runOnUiThread {
                     CustomDialog("호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)").show(
                         supportFragmentManager,
@@ -270,19 +276,10 @@ class MainActivity : AppCompatActivity() {
                     tmp2 = String(buffer)
                     Log.d(TAG, tmp2)
                     val token = tmp2.split(' ')     // 받아온 신호 space로 구분하기
-                    Log.d(TAG, token[2])
+                    functionName = token[2]
+                    Log.d(TAG, functionName)
 
-
-                    if (checkReceiveTime(token[2])) {
-                        checkFunc(token[2])
-                    } else {
-                        runOnUiThread {
-                            CustomDialog("네트워크 오류").show(
-                                supportFragmentManager,
-                                "CustomDialog"
-                            )
-                        }
-                    }
+                    checkFunc(functionName)
                 }
 
                 Thread.sleep(10)    // Thread 일시 정지
@@ -299,13 +296,6 @@ class MainActivity : AppCompatActivity() {
         when (name) {
             "POLL" -> {
                 dataSend("STATUS")
-            }
-            "START" -> {    // 강제로 timer 시작
-                Log.d(TAG, "스타트!!!!!")
-                start()
-            }
-            "END" -> {      // 강제로 timer 종료
-                stop()
             }
             "RESET" -> {
                 runOnUiThread {
@@ -352,49 +342,69 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Timer start
-    private fun start() {
-        totalGameCount++
-        runOnUiThread {
-            binding.startBtn.setBackgroundResource(R.drawable.end_button_ripple)
-            backgroundCode = 2
-            time = 0
-            timerTask =
-                timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
-                    hour = time / 60 // 나눗셈의 몫 (시간 부분)
-                    minute = time % 60 // 나눗셈의 나머지 (분 부분)
+    private fun startTimer() {
+        Log.d(TAG, "startTimer에서 $functionName 확인")
+        if (checkReceiveTime(functionName)) {
+            totalGameCount++
+            runOnUiThread {
+                binding.startBtn.setBackgroundResource(R.drawable.end_button_ripple)
+                backgroundCode = 2
+                time = 0
+                timerTask =
+                    timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
+                        hour = time / 60 // 나눗셈의 몫 (시간 부분)
+                        minute = time % 60 // 나눗셈의 나머지 (분 부분)
 
-                    time++ // period = 60000으로 1분마다 time를 1씩 증가하게 됩니다
+                        time++ // period = 60000으로 1분마다 time를 1씩 증가하게 됩니다
 
-                    runOnUiThread {
-                        binding.hourTensText.text = String.format("%01d", hour / 10)
-                        binding.hourUnitsText.text = String.format("%01d", hour % 10)
-                        binding.minuteTensText.text = String.format("%01d", minute / 10)
-                        binding.minuteUnitsText.text = String.format("%01d", minute % 10)
+                        runOnUiThread {
+                            binding.hourTensText.text = String.format("%01d", hour / 10)
+                            binding.hourUnitsText.text = String.format("%01d", hour % 10)
+                            binding.minuteTensText.text = String.format("%01d", minute / 10)
+                            binding.minuteUnitsText.text = String.format("%01d", minute % 10)
+                        }
                     }
-                }
+            }
+        } else {
+            runOnUiThread {
+                CustomDialog("네트워크 오류").show(
+                    supportFragmentManager,
+                    "CustomDialog"
+                )
+            }
         }
     }
 
     // Timer stop
-    private fun stop() {
-        gameCount++
-        runOnUiThread {
-            binding.gameCountTv.text = gameCount.toString()
-            timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
+    private fun stopTimer() {
+        Log.d(TAG, "stopTimer에서 $functionName 확인")
+        if (checkReceiveTime(functionName)) {
+            gameCount++
+            runOnUiThread {
+                binding.gameCountTv.text = gameCount.toString()
+                timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
 
-            time = 0 // 시간저장 변수 초기화
-            // 시간초기화
-            binding.hourTensText.text = "0"
-            binding.hourUnitsText.text = "0"
-            binding.minuteTensText.text = "0"
-            binding.minuteUnitsText.text = "0"
-            binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
-            backgroundCode = 1
-            binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
-            binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
+                time = 0 // 시간저장 변수 초기화
+                // 시간초기화
+                binding.hourTensText.text = "0"
+                binding.hourUnitsText.text = "0"
+                binding.minuteTensText.text = "0"
+                binding.minuteUnitsText.text = "0"
+                binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
+                backgroundCode = 1
+                binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
+                binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
 
-            hour = 0
-            minute = 0
+                hour = 0
+                minute = 0
+            }
+        } else {
+            runOnUiThread {
+                CustomDialog("네트워크 오류").show(
+                    supportFragmentManager,
+                    "CustomDialog"
+                )
+            }
         }
     }
 
