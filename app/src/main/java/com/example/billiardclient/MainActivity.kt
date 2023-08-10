@@ -161,7 +161,6 @@ class MainActivity : AppCompatActivity() {
                             tcpConnect()
                         }
                         functionName = ""
-                        startTime = ""
                     }
                 }
                 2 -> {
@@ -193,7 +192,6 @@ class MainActivity : AppCompatActivity() {
                             tcpConnect()
                         }
                         functionName = ""
-                        endTime = ""
                     }
                 }
             }
@@ -397,11 +395,12 @@ class MainActivity : AppCompatActivity() {
             backgroundCode = 2
             time = 0
             timerTask =
-                timer(period = 600) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
+                timer(period = 1000) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
+                    Log.d("TimeCheck", "$time")
                     hour = time / 60 // 나눗셈의 몫 (시간 부분)
                     minute = time % 60 // 나눗셈의 나머지 (분 부분)
-
-                    time++ // period = 60000으로 1분마다 time를 1씩 증가하게 됩니다
+                    val curTime = TimeUtils().getTime()
+                    time = (curTime.toDouble() - startTime.toDouble()).toInt()
 
                     runOnUiThread {
                         binding.hourTensText.text = String.format("%01d", hour / 10)
@@ -411,8 +410,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
         }
-        startTime = ""
-
     }
 
     // Timer stop
