@@ -8,7 +8,9 @@ import android.content.pm.PackageManager
 import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
+import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -32,6 +34,7 @@ import com.example.billiardclient.utils.CustomDialog
 import com.example.billiardclient.utils.CustomProgressDialog
 import com.example.billiardclient.utils.TimeUtils
 import kotlinx.coroutines.*
+import java.io.File
 import java.io.IOException
 import java.lang.Runnable
 import java.net.InetSocketAddress
@@ -98,6 +101,8 @@ class MainActivity : AppCompatActivity() {
         socket = Socket()
 
         setFullScreen()
+
+        getFileDate()
 
         // 사운드 추가
         val soundPool = SoundPool.Builder().build()
@@ -507,6 +512,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 사진 기간되면 삭제
+    private fun getFileDate() {
+        try {
+            Log.d("FileDelete", "파일 삭제")
+            val cal = Calendar.getInstance()
+            val todayMil = cal.timeInMillis // 현재단위 밀리세컨드
+            Log.d("FileDelete", "todayMil : $todayMil")
+            val oneDayMil = 20 * 60 * 60 * 1000 // 일 단위
+            val fileCal = Calendar.getInstance()
+            var fileDate: Date
+            val path = Environment.getExternalStoragePublicDirectory("Pictures/Billiard")
+            Log.d("FileDelete", "파일 경로 : $path")
+            val list = path.listFiles()
+
+            for (i in list.indices) {
+                Log.d("FileDelete", "list의 경로 ${list[i]}")
+                // 파일 마지막 수정시간
+                fileDate = Date(list[i].lastModified())
+                Log.d("FileDelete", "파일 수정 시간 : $fileDate")
+                // 현재시간과 파일수정시간 시간차 계산
+                fileCal.time = fileDate
+                Log.d("FileDelete", "fileCal 시간 : ${fileCal.time}")
+                //밀리세컨드로 계산
+                val diffMil = todayMil - fileCal.timeInMillis
+                Log.d("FileDelete", "diffMill 시간 : $diffMil")
+                Log.d("FileDelete", "fileCal.timeInMillis 시간 : ${fileCal.timeInMillis}")
+                // 날짜 변경
+                val diffDay = (diffMil / oneDayMil).toInt()
+                Log.d("FileDelete", "diffDay : $diffDay")
+                if (diffDay >= 0 && list[i].exists()) {
+                    list[i].delete()
+                    Log.d("FileDelete", "파일 삭제되나?")
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("FileDelete", "파일이 존재하지 않습니다.")
+        }
+    }
+
     // 사진 저장
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
@@ -519,7 +564,7 @@ class MainActivity : AppCompatActivity() {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Billiard")
             }
         }
 
