@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     var endTime = ""
 
     companion object {
-        private const val LIMIT_TIME = 10.0
+        private const val LIMIT_TIME = 1.0
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -136,6 +136,7 @@ class MainActivity : AppCompatActivity() {
         // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
             Log.d("MainActivity", backgroundCode.toString())
+            displayCurState("전송 중..")
             when (backgroundCode) {
                 0 -> {
                     tcpConnect()
@@ -148,6 +149,7 @@ class MainActivity : AppCompatActivity() {
                         startTime = TimeUtils().getTime()
                         if (checkReceiveTime("START", startTime)) {
                             startTimer()
+                            displayCurState("")
                         } else {
                             runOnUiThread {
                                 CustomProgressDialog("접속 중..").show(
@@ -155,6 +157,7 @@ class MainActivity : AppCompatActivity() {
                                     "CustomDialog"
                                 )
                             }
+                            displayCurState("네트워크 오류")
                             tcpConnect()
                         }
                         functionName = ""
@@ -178,6 +181,7 @@ class MainActivity : AppCompatActivity() {
                         endTime = TimeUtils().getTime()
                         if (checkReceiveTime("END", endTime)) {
                             stopTimer()
+                            displayCurState("")
                         } else {
                             runOnUiThread {
                                 CustomProgressDialog("접속 중..").show(
@@ -185,6 +189,7 @@ class MainActivity : AppCompatActivity() {
                                     "CustomDialog"
                                 )
                             }
+                            displayCurState("네트워크 오류")
                             tcpConnect()
                         }
                         functionName = ""
@@ -229,12 +234,16 @@ class MainActivity : AppCompatActivity() {
                 })
                 backgroundCode = 1
 
+                displayCurState("")
+
                 dataReceive()
 
             } catch (uhe: UnknownHostException) { // 소켓 생성 시 전달되는 호스트(www.unknown-host.com)의 IP를 식별할 수 없음.
                 Log.e(TAG, "생성 Error : 호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
                 uhe.printStackTrace()
+
                 runOnUiThread {
+                    displayCurState("네트워크 오류")
                     CustomDialog("호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)").show(
                         supportFragmentManager,
                         "CustomDialog"
@@ -242,7 +251,9 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (ioe: IOException) { // 소켓 생성 과정에서 I/O 에러 발생.
                 Log.e(TAG, "생성 Error : 네트워크 응답 없음")
+
                 runOnUiThread {
+                    displayCurState("네트워크 오류")
                     CustomDialog("네트워크 응답 없음").show(supportFragmentManager, "CustomDialog")
                 }
             } catch (se: SecurityException) { // security manager에서 허용되지 않은 기능 수행.
@@ -250,7 +261,9 @@ class MainActivity : AppCompatActivity() {
                     TAG,
                     "생성 Error : 보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)"
                 )
+
                 runOnUiThread {
+                    displayCurState("네트워크 오류")
                     CustomDialog("보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)").show(
                         supportFragmentManager,
                         "CustomDialog"
@@ -261,7 +274,9 @@ class MainActivity : AppCompatActivity() {
                     TAG,
                     " 생성 Error : 메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)"
                 )
+
                 runOnUiThread {
+                    displayCurState("네트워크 오류")
                     CustomDialog("메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)").show(
                         supportFragmentManager,
                         "CustomDialog"
@@ -366,6 +381,13 @@ class MainActivity : AppCompatActivity() {
         return sb.toString()
     }
 
+    // 네트워크의 상태를 나타내주는 text
+    private fun displayCurState(curState: String) {
+        runOnUiThread {
+            binding.curStateTv.text = curState
+        }
+    }
+
     // Timer start
     private fun startTimer() {
         Log.d(TAG, "startTimer에서 $functionName 확인")
@@ -427,11 +449,11 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "checkReceiveTime 에서 functionName : $functionName")
         while (curTime.toDouble() - sendTime.toDouble() <= LIMIT_TIME) {
             curTime = TimeUtils().getTime()
-            if(funcName == functionName) {
+            if (funcName == functionName) {
                 Log.d("Receive OK", "$functionName")
                 return true
             } else {
-                Thread.sleep(1000)
+                Thread.sleep(100)
                 Thread.yield()
                 Log.d("current Time", "$curTime")
                 Log.d("send Time", "$sendTime")
