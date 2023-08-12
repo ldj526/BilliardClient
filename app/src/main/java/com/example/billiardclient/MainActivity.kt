@@ -398,8 +398,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("TimeCheck", "$time")
                     hour = time / 60 // 나눗셈의 몫 (시간 부분)
                     minute = time % 60 // 나눗셈의 나머지 (분 부분)
-                    val curTime = TimeUtils().getTime()
-                    time = (curTime.toDouble() - startTime.toDouble()).toInt()
+                    time++
 
                     runOnUiThread {
                         binding.hourTensText.text = String.format("%01d", hour / 10)
@@ -454,7 +453,7 @@ class MainActivity : AppCompatActivity() {
         totalTimeMinutes += minute
         val exceedMinutes = totalTimeMinutes / 60
         totalTimeMinutes %= 60
-        totalTimeHour += exceedMinutes
+        totalTimeHour += hour + exceedMinutes
         hour = 0
         minute = 0
         time = 0 // 시간저장 변수 초기화
