@@ -31,7 +31,7 @@ class CustomProgressDialog(private val message: String) : DialogFragment() {
             override fun run() {
                 dismiss()
             }
-        }, 3000)
+        }, 2000)
 
         return view
     }

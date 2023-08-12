@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -34,7 +33,6 @@ import com.example.billiardclient.utils.CustomDialog
 import com.example.billiardclient.utils.CustomProgressDialog
 import com.example.billiardclient.utils.TimeUtils
 import kotlinx.coroutines.*
-import java.io.File
 import java.io.IOException
 import java.lang.Runnable
 import java.net.InetSocketAddress
@@ -102,7 +100,7 @@ class MainActivity : AppCompatActivity() {
 
         setFullScreen()
 
-        getFileDate()
+        removeFileDate()
 
         // 사운드 추가
         val soundPool = SoundPool.Builder().build()
@@ -145,6 +143,10 @@ class MainActivity : AppCompatActivity() {
             when (backgroundCode) {
                 0 -> {
                     tcpConnect()
+                    runOnUiThread {
+                        binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
+                    }
+                    backgroundCode = 1
                 }
                 1 -> {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -171,6 +173,7 @@ class MainActivity : AppCompatActivity() {
                 2 -> {
                     CoroutineScope(Dispatchers.IO).launch {
                         soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                        timerTask?.cancel()
                         getGameTime()
                         dataSend(
                             "END",
@@ -227,15 +230,6 @@ class MainActivity : AppCompatActivity() {
                 statusTimerTask = timer(period = 60000) {
                     dataSend("STATUS")
                 }
-
-                val task = timer(period = 3000) {
-                    Log.d(TAG, "현재 functionName : $functionName")
-                }
-
-                runOnUiThread(Runnable {
-                    binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
-                })
-                backgroundCode = 1
 
                 displayCurState("")
 
@@ -423,9 +417,6 @@ class MainActivity : AppCompatActivity() {
         gameCount++
         runOnUiThread {
             binding.gameCountTv.text = gameCount.toString()
-            timerTask?.cancel() // timerTask가 null이 아니라면 cancel() 호출
-
-            time = 0 // 시간저장 변수 초기화
             // 시간초기화
             binding.hourTensText.text = "0"
             binding.hourUnitsText.text = "0"
@@ -433,14 +424,11 @@ class MainActivity : AppCompatActivity() {
             binding.minuteUnitsText.text = "0"
             binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
             backgroundCode = 1
+            Log.d("stopTimer()", "backgroundCode : $backgroundCode")
             binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
             binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
-
-            hour = 0
-            minute = 0
         }
         endTime = ""
-
     }
 
     // 데이터 보낸 시간과 받은 시간을 비교해 데이터 처리
@@ -452,14 +440,10 @@ class MainActivity : AppCompatActivity() {
         while (curTime.toDouble() - sendTime.toDouble() <= LIMIT_TIME) {
             curTime = TimeUtils().getTime()
             if (funcName == functionName) {
-                Log.d("Receive OK", "$functionName")
                 return true
             } else {
                 Thread.sleep(100)
                 Thread.yield()
-                Log.d("current Time", "$curTime")
-                Log.d("send Time", "$sendTime")
-                Log.d("Receive Wait", "$functionName")
             }
         }
         return false
@@ -471,6 +455,9 @@ class MainActivity : AppCompatActivity() {
         val exceedMinutes = totalTimeMinutes / 60
         totalTimeMinutes %= 60
         totalTimeHour += exceedMinutes
+        hour = 0
+        minute = 0
+        time = 0 // 시간저장 변수 초기화
     }
 
     // 앱을 전체화면으로 만들기
@@ -513,7 +500,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 사진 기간되면 삭제
-    private fun getFileDate() {
+    private fun removeFileDate() {
         try {
             Log.d("FileDelete", "파일 삭제")
             val cal = Calendar.getInstance()
@@ -660,17 +647,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 앱 종료 시
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
         try {
             socket.close() //소켓을 닫는다.
         } catch (e: IOException) {
             e.printStackTrace()
         }
-    }
-
-    override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
         _binding = null
