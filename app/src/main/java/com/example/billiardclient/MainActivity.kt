@@ -9,6 +9,7 @@ import android.media.SoundPool
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
 import android.view.MotionEvent
@@ -71,6 +72,8 @@ class MainActivity : AppCompatActivity() {
     var startTime = ""
     var endTime = ""
 
+    var cameraProvider: ProcessCameraProvider? = null
+
     companion object {
         private const val LIMIT_TIME = 1.0
         private const val TAG = "CameraXApp"
@@ -109,6 +112,15 @@ class MainActivity : AppCompatActivity() {
         tableNumber = getSharedPreferences("number", MODE_PRIVATE)
         ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
 
+        // 권한에 따른 카메라 실행
+        if (!allPermissionsGranted()) {
+            ActivityCompat.requestPermissions(
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
+        }
+
+        cameraExecutor = Executors.newSingleThreadExecutor()
+
         // Setting 화면에서 입력한 table 번호 가져오기
         val text = "${tableNumber.getString("number", "NULL")}"
         binding.tableNumber.text = text
@@ -144,7 +156,9 @@ class MainActivity : AppCompatActivity() {
                     tcpConnect()
                 }
                 1 -> {
+                    startCamera()
                     CoroutineScope(Dispatchers.IO).launch {
+                        delay(100)
                         takePhoto()
                         soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                         dataSend("START", totalGameCount.toString())
@@ -164,6 +178,10 @@ class MainActivity : AppCompatActivity() {
                         }
                         functionName = ""
                     }
+                    Handler().postDelayed(Runnable {
+                        cameraProvider!!.unbindAll()
+                    }, 3000)
+
                 }
                 2 -> {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -199,17 +217,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        // 권한에 따른 카메라 실행
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-            )
-        }
-
-        cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
     // Connect 버튼 클릭 시 연결/데이터 송신
@@ -591,7 +598,7 @@ class MainActivity : AppCompatActivity() {
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
 
             // Preview
             val preview = Preview.Builder()
@@ -607,10 +614,10 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
+                cameraProvider!!.unbindAll()
 
                 // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
+                cameraProvider!!.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture
                 )
 

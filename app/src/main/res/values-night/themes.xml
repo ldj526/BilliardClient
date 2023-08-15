@@ -24,7 +24,7 @@
         <item name="android:autoSizeMaxTextSize">250sp</item>
         <item name="android:autoSizeMinTextSize">100sp</item>
         <item name="android:autoSizeStepGranularity">2sp</item>
-        <item name="android:fontFamily">@font/bauhausmedium</item>
+        <item name="android:fontFamily">@font/seven_segment</item>
         <item name="android:freezesText">false</item>
         <item name="android:text">0</item>
         <item name="android:textColor">#FFFFFF</item>

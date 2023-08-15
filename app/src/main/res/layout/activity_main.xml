@@ -36,6 +36,7 @@
             <TextView
                 android:id="@+id/tableNumber"
                 style="@style/TimerTextView"
+                android:layout_marginBottom="30dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:textColor="#FF0000"
@@ -114,9 +115,23 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="3dp"
             android:gravity="center"
             android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#11A817"
+                android:text="EasyBilliard"
+                android:textSize="13sp"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="45dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/curStateTv"
@@ -136,19 +151,20 @@
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="15dp"/>
 
             <TextView
                 android:id="@+id/hourUnitsText"
                 style="@style/TimerTextView"
-                android:layout_marginStart="50dp"
+                android:layout_marginStart="56dp"
                 app:layout_constraintBottom_toBottomOf="@+id/hourTensText"
                 app:layout_constraintStart_toEndOf="@+id/hourTensText"
                 app:layout_constraintTop_toTopOf="@+id/hourTensText" />
 
             <TextView
                 android:id="@+id/minuteTensText"
-                android:layout_marginStart="75dp"
+                android:layout_marginStart="82dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
                 app:layout_constraintStart_toEndOf="@+id/hourUnitsText"
@@ -156,7 +172,7 @@
 
             <TextView
                 android:id="@+id/minuteUnitsText"
-                android:layout_marginStart="49dp"
+                android:layout_marginStart="54dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/minuteTensText"
                 app:layout_constraintStart_toEndOf="@+id/minuteTensText"
