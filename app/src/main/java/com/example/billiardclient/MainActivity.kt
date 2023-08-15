@@ -34,7 +34,6 @@ import com.example.billiardclient.utils.CustomProgressDialog
 import com.example.billiardclient.utils.TimeUtils
 import kotlinx.coroutines.*
 import java.io.IOException
-import java.lang.Runnable
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.UnknownHostException
@@ -115,12 +114,12 @@ class MainActivity : AppCompatActivity() {
         binding.tableNumber.text = text
 
         // 테이블 번호 LongClick 시 Setting 화면으로 이동
-        binding.settingBtn.setOnTouchListener { v, event ->
+        binding.tableNumber.setOnTouchListener { v, event ->
             // 잠금이 걸려있으면 비밀번호 화면으로
             if (event.action == MotionEvent.ACTION_DOWN) {
                 pressTime = System.currentTimeMillis()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                if ((System.currentTimeMillis() - pressTime) > 1000) {
+                if ((System.currentTimeMillis() - pressTime) >= 5000) {
                     if (AppLock(this).isPassLockSet()) {
                         val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
                             putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
@@ -143,10 +142,6 @@ class MainActivity : AppCompatActivity() {
             when (backgroundCode) {
                 0 -> {
                     tcpConnect()
-                    runOnUiThread {
-                        binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
-                    }
-                    backgroundCode = 1
                 }
                 1 -> {
                     CoroutineScope(Dispatchers.IO).launch {
@@ -225,6 +220,13 @@ class MainActivity : AppCompatActivity() {
                 socket = Socket()
                 socket.connect(InetSocketAddress(hostname, port), 1000)
                 Log.d(TAG, "소켓 연결")
+
+                if (backgroundCode == 0) {
+                    runOnUiThread {
+                        binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
+                    }
+                    backgroundCode = 1
+                }
 
                 // 1분마다 Server로 신호를 보내줌
                 statusTimerTask = timer(period = 60000) {
@@ -575,9 +577,9 @@ class MainActivity : AppCompatActivity() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val msg = "Photo capture succeeded: ${output.savedUri}"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+//                    val msg = "Photo capture succeeded: ${output.savedUri}"
+//                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "Photo capture succeeded")
                 }
             }
         )
