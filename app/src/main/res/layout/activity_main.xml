@@ -7,7 +7,7 @@
     android:layout_weight="1"
     android:background="@drawable/main_background"
     android:orientation="horizontal"
-    tools:context=".MainActivity">
+    tools:context="com.billiard.billiardclient.MainActivity">
 
 
     <LinearLayout
@@ -66,7 +66,7 @@
                 android:id="@+id/textView4"
                 style="@style/TotalNumberStyle"
                 android:text="Time"
-                app:layout_constraintStart_toStartOf="@+id/textView5"
+                app:layout_constraintEnd_toEndOf="@+id/textView5"
                 app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
             <TextView
@@ -157,14 +157,14 @@
             <TextView
                 android:id="@+id/hourUnitsText"
                 style="@style/TimerTextView"
-                android:layout_marginStart="56dp"
+                android:layout_marginStart="52dp"
                 app:layout_constraintBottom_toBottomOf="@+id/hourTensText"
                 app:layout_constraintStart_toEndOf="@+id/hourTensText"
                 app:layout_constraintTop_toTopOf="@+id/hourTensText" />
 
             <TextView
                 android:id="@+id/minuteTensText"
-                android:layout_marginStart="82dp"
+                android:layout_marginStart="78dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
                 app:layout_constraintStart_toEndOf="@+id/hourUnitsText"
@@ -172,7 +172,7 @@
 
             <TextView
                 android:id="@+id/minuteUnitsText"
-                android:layout_marginStart="54dp"
+                android:layout_marginStart="50dp"
                 style="@style/TimerTextView"
                 app:layout_constraintBottom_toBottomOf="@+id/minuteTensText"
                 app:layout_constraintStart_toEndOf="@+id/minuteTensText"

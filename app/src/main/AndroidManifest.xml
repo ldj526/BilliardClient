@@ -19,24 +19,25 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.BilliardClient"
         tools:targetApi="31">
         <activity
-            android:name=".lock.AppLockSettingActivity"
+            android:name="com.billiard.billiardclient.lock.AppLockSettingActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".lock.AppLockPasswordActivity"
+            android:name="com.billiard.billiardclient.lock.AppLockPasswordActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".SettingActivity"
+            android:name="com.billiard.billiardclient.SettingActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.billiard.billiardclient.MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:screenOrientation="landscape">
