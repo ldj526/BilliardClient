@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
-    private var time = 0
+    private var time: Long = 0
     private var timerTask: Timer? = null
     private var statusTimerTask: Timer? = null
     lateinit var tableNumber: SharedPreferences
@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     var startTime = ""
     var endTime = ""
+    var startTimeD: Long = 0
 
     var cameraProvider: ProcessCameraProvider? = null
 
@@ -163,6 +164,7 @@ class MainActivity : AppCompatActivity() {
                         soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                         dataSend("START", totalGameCount.toString())
                         startTime = TimeUtils().getTime()
+                        startTimeD = System.currentTimeMillis()
                         if (checkReceiveTime("START", startTime)) {
                             startTimer()
                             displayCurState("")
@@ -402,11 +404,11 @@ class MainActivity : AppCompatActivity() {
             backgroundCode = 2
             time = 0
             timerTask =
-                timer(period = 60000) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
-                    Log.d("TimeCheck", "$time")
-                    hour = time / 60 // 나눗셈의 몫 (시간 부분)
-                    minute = time % 60 // 나눗셈의 나머지 (분 부분)
-                    time++
+                timer(period = 500) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
+                    val curTimeD = System.currentTimeMillis()
+                    time = (curTimeD - startTimeD) / 1000 / 60
+                    hour = (time / 60).toInt() // 나눗셈의 몫 (시간 부분)
+                    minute = (time % 60).toInt() // 나눗셈의 나머지 (분 부분)
 
                     runOnUiThread {
                         binding.hourTensText.text = String.format("%01d", hour / 10)
@@ -509,35 +511,25 @@ class MainActivity : AppCompatActivity() {
     // 사진 기간되면 삭제
     private fun removeFileDate() {
         try {
-            Log.d("FileDelete", "파일 삭제")
             val cal = Calendar.getInstance()
             val todayMil = cal.timeInMillis // 현재단위 밀리세컨드
-            Log.d("FileDelete", "todayMil : $todayMil")
             val oneDayMil = 20 * 60 * 60 * 1000 // 일 단위
             val fileCal = Calendar.getInstance()
             var fileDate: Date
             val path = Environment.getExternalStoragePublicDirectory("Pictures/Billiard")
-            Log.d("FileDelete", "파일 경로 : $path")
             val list = path.listFiles()
 
             for (i in list.indices) {
-                Log.d("FileDelete", "list의 경로 ${list[i]}")
                 // 파일 마지막 수정시간
                 fileDate = Date(list[i].lastModified())
-                Log.d("FileDelete", "파일 수정 시간 : $fileDate")
                 // 현재시간과 파일수정시간 시간차 계산
                 fileCal.time = fileDate
-                Log.d("FileDelete", "fileCal 시간 : ${fileCal.time}")
                 //밀리세컨드로 계산
                 val diffMil = todayMil - fileCal.timeInMillis
-                Log.d("FileDelete", "diffMill 시간 : $diffMil")
-                Log.d("FileDelete", "fileCal.timeInMillis 시간 : ${fileCal.timeInMillis}")
                 // 날짜 변경
                 val diffDay = (diffMil / oneDayMil).toInt()
-                Log.d("FileDelete", "diffDay : $diffDay")
                 if (diffDay >= 0 && list[i].exists()) {
                     list[i].delete()
-                    Log.d("FileDelete", "파일 삭제되나?")
                 }
             }
         } catch (e: Exception) {
