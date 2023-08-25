@@ -188,17 +188,17 @@ class MainActivity : AppCompatActivity() {
                     CoroutineScope(Dispatchers.IO).launch {
                         soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
                         timerTask?.cancel()
-                        getGameTime()
                         dataSend(
                             "END",
                             totalGameCount.toString(),
-                            "${String.format("%02d", totalTimeHour)}${
+                            "${String.format("%02d", hour)}${
                                 String.format(
                                     "%02d",
-                                    totalTimeMinutes
+                                    time
                                 )
                             }"
                         )
+                        getGameTime()
                         endTime = TimeUtils().getTime()
                         if (checkReceiveTime("END", endTime)) {
                             stopTimer()
