@@ -1,21 +1,61 @@
 # Client
 - 타이머 화면
-  - ~~타이머 추가~~
-    - ~~시작 버튼 클릭 시 종료 버튼으로 변경~~
-  - ~~일반 사용자는 보이지 않는 곳에 설정화면으로 이동하는 기능~~
-    - ~~Long Click 시 설정창으로 이동~~
+  - [x] 타이머 추가
+    - [x] start를 누른 시간과 현재 시각을 계산하여 timer 출력
+  - [x] 일반 사용자는 보이지 않는 곳에 설정화면으로 이동하는 기능
+    - [x] 5초 press 시 설정창으로 이동
 - 설정 화면
-  - ~~테이블 번호를 적는 EditText 생성~~
-  - ~~IP 주소를 적는 EditText 생성~~
-  - ~~저장 버튼 클릭 시 IP 주소와 테이블 번호 전달~~
-  - ~~취소 버튼 시 타이머 화면으로 되돌아가기~~
+  - [x] 테이블 번호를 적는 EditText 생성
+  - [x] IP 주소를 적는 EditText 생성
+  - [x] 저장 버튼 클릭 시 IP 주소와 테이블 번호 메인 화면으로 전달
+  - [x] 취소 버튼 시 타이머 화면으로 되돌아가기
+- 비밀번호 설정 화면
+  - [x] 잠금 설정
+  - [x] 잠금 비활성화
+  - [x] 비밀번호 변경
+- Connect 버튼
+  - [x] Thread를 활용해 Socket 연결을 해준다.
 - START 버튼
-  - ~~게임 누른 사람 식별하기 위해 무음 셀프카메라 찍히는 기능~~
-  - ~~전체 게임수 + 1 (화면에 안보이게)~~
-- ~~화면 상단에 계산하기 전까지 게임 수, 시간 합계 보이게 하기~~
-- 기기 실행 시 자동으로 앱 실행시키기
-- ~~앱 실행중에 전체 화면으로 보이게 하기~~
-- ~~버튼 클릭 시 사운드 출력해주기~~
+  - [ ] 버튼 Disable
+  - [ ] "START" data 보내기
+  - [ ] list queue에서 "START"에 receiveData 를 clear
+  - [ ] list queue에서 "START"에 sendTime 넣기
+- END 버튼
+  - [ ] Timer 정지시키기 
+  - [ ] 버튼 disable
+  - [ ] "END" data 보내기
+  - [ ] list queue에서 "END"에 receiveData 를 clear
+  - [ ] list queue에서 "END"에 sendTime 넣기
+  - [x] 전체 게임수 +1 / 전체 시간 +현재 게임 시간
+- Receive List Queue
+  - ReceiveTime이 0일 경우 sendTime과 현재 시각을 비교해 처리
+    - [ ] 1초 미만일 경우 FunctionName에 맞게 처리해준다.
+    - [ ] 1초 이상일 경우 네트워크 오류를 표시해준다.
+  - "START"
+    - [ ] Timer 시작
+    - [ ] 게임 누른 사람 식별하기 위해 무음 셀프카메라 찍히는 기능
+    - [ ] 버튼 Enable
+    - [ ] 버튼 END로 변경
+  - "END"
+    - [ ] 게임을 더 할지 안할지에 대한 Dialog 띄우기
+      - 더 할 경우
+        - [ ] Dialog dismiss
+      - 더 안할 경우
+        - [ ] ENDGAME data 보내기
+        - [ ] 정산 중.. 이라는 Dialog 띄우기 (클릭 안되게)
+    - [ ] 버튼 START로 변경
+    - [ ] Timer Clear
+  - "ENDGAME"
+    - [ ] 정산 중.. Dialog dismiss
+    - [ ] total game, time 초기화
+  - "POLL"
+    - [ ] "STATUS" 보내기
+  - "CLOSE"
+    - [ ] 그 테이블의 전체 게임 수 초기화
+- [x] 화면에 계산하기 전까지 게임 수, 시간 합계 보이게 하기
+- [x] 앱 실행중에 전체 화면으로 보이게 하기
+- [x] 앱 화면 계속 켜지게 하기
+- [x] 버튼 클릭 시 사운드 출력해주기
 
 # 통신
 - Server에서 Client로 보내는 데이터
@@ -27,13 +67,16 @@
     - 작동 중인지 STATUS 데이터를 보내준다.
   - CLOSE
     - 게임 전체 수를 초기화 시킨다.
-  - RESET
+  - ENDGAME
     - 계산된 게임에서의 판 수를 초기화 시킨다.
+    - 계산이 완료되면 Dialog를 없애준다.
 - Client에서 Server로 보내는 데이터
   - START
     - 게임을 시작하겠다는 신호를 보낸다.
   - END
     - 게임을 끝내겠다는 신호를 보낸다.
+  - ENDGAME
+    - 정산을 위해 전체 게임 시간을 보내준다.
   - STATUS
     - 1분에 1회 메세지를 보낸다.
     - POLL 신호를 받았을 때 응답해준다.
@@ -47,18 +90,13 @@
 - Function
   - START
   - END
+  - ENDGAME
   - STATUS
   - POLL
   - CLOSE
-  - RESET
 - 게임 전체 수
   - 000 ~ 999
 - Data
   - HHMM
 - CR
   - x0d
-
-
-receive 빼고 다 함수화
-1초 뒤 데이터 오는지 확인 하는 것은 dataSend에서 처리
-웬만하면 클래스화 시키기
