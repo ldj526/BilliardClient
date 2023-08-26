@@ -2,6 +2,7 @@ package com.billiard.billiardclient
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -29,6 +31,7 @@ import com.billiard.billiardclient.lock.AppLockConst
 import com.billiard.billiardclient.lock.AppLockPasswordActivity
 import com.billiard.billiardclient.utils.CustomDialog
 import com.billiard.billiardclient.utils.CustomProgressDialog
+import com.billiard.billiardclient.utils.ReturnDialog
 import com.billiard.billiardclient.utils.TimeUtils
 import kotlinx.coroutines.*
 import java.io.IOException
@@ -67,10 +70,12 @@ class MainActivity : AppCompatActivity() {
     private var functionName = ""
 
     var startTime = ""
-    var endTime = ""
     var startTimeD: Long = 0
+    var endTimeD: Long = 0
 
     var cameraProvider: ProcessCameraProvider? = null
+
+    lateinit var returnDialog: ReturnDialog
 
     companion object {
         private const val LIMIT_TIME = 1.0
@@ -98,6 +103,8 @@ class MainActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         viewFinder = binding.viewFinder
+
+        returnDialog = ReturnDialog("정산 중..", "카운터로 가서 계산하세요.")
 
         socket = Socket()
 
@@ -165,7 +172,7 @@ class MainActivity : AppCompatActivity() {
                         dataSend("START", totalGameCount.toString())
                         startTime = TimeUtils().getTime()
                         startTimeD = System.currentTimeMillis()
-                        if (checkReceiveTime("START", startTime)) {
+                        if (checkReceiveTime("START", startTimeD)) {
                             startTimer()
                             displayCurState("")
                         } else {
@@ -185,39 +192,57 @@ class MainActivity : AppCompatActivity() {
                     }, 3000)
                 }
                 2 -> {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
-                        timerTask?.cancel()
-                        dataSend(
-                            "END",
-                            totalGameCount.toString(),
-                            "${String.format("%02d", hour)}${
-                                String.format(
-                                    "%02d",
-                                    time
-                                )
-                            }"
-                        )
-                        getGameTime()
-                        endTime = TimeUtils().getTime()
-                        if (checkReceiveTime("END", endTime)) {
-                            stopTimer()
-                            displayCurState("")
-                        } else {
-                            runOnUiThread {
-                                CustomProgressDialog("접속 중..").show(
-                                    supportFragmentManager,
-                                    "CustomDialog"
-                                )
-                            }
-                            displayCurState("네트워크 오류")
-                            tcpConnect()
-                        }
-                        functionName = ""
-                    }
+                    soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                    timerTask?.cancel()
+                    endDialog()
                 }
             }
         }
+    }
+
+    private fun endDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("게임을 더 하시겠습니까?")
+            .setPositiveButton("네", DialogInterface.OnClickListener { dialog, which ->
+                procedureEndGame("END", hour, minute)
+            })
+            .setNegativeButton("아니오", DialogInterface.OnClickListener { dialog, which ->
+                procedureEndGame("ENDGAME", totalTimeHour, totalTimeMinutes)
+                returnDialog.show(supportFragmentManager, "ReturnDialog")
+            })
+        val alertDialog = builder.create()
+        val window = alertDialog.window
+        window?.setGravity(Gravity.BOTTOM)
+        alertDialog.show()
+    }
+
+    private fun procedureEndGame(fucName: String, hour: Int, minute: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            dataSend(
+                fucName,
+                totalGameCount.toString(),
+                "${String.format("%02d", hour)}${
+                    String.format(
+                        "%02d",
+                        minute
+                    )
+                }"
+            )
+        }
+        getGameTime()
+        endTimeD = System.currentTimeMillis()
+        if (checkReceiveTime(fucName, endTimeD)) {
+            stopTimer()
+            displayCurState("")
+        } else {
+            CustomProgressDialog("접속 중..").show(
+                supportFragmentManager,
+                "CustomDialog"
+            )
+            displayCurState("네트워크 오류")
+            tcpConnect()
+        }
+        functionName = ""
     }
 
     // Connect 버튼 클릭 시 연결/데이터 송신
@@ -349,6 +374,7 @@ class MainActivity : AppCompatActivity() {
                     binding.totalHourTimeTv.text = "00"
                     binding.totalMinutesTimeTv.text = "00"
                     binding.gameCountTv.text = "0"
+                    returnDialog.dismiss()
                 }
             }
             "CLOSE" -> {
@@ -437,17 +463,14 @@ class MainActivity : AppCompatActivity() {
             binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
             binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
         }
-        endTime = ""
+        endTimeD = 0
     }
 
     // 데이터 보낸 시간과 받은 시간을 비교해 데이터 처리
-    private fun checkReceiveTime(funcName: String, sendTime: String): Boolean {
-        var curTime = TimeUtils().getTime()
-        Log.d(TAG, "checkReceiveTime 에서 startTime : $startTime")
-        Log.d(TAG, "checkReceiveTime 에서 endTime : $endTime")
-        Log.d(TAG, "checkReceiveTime 에서 functionName : $functionName")
-        while (curTime.toDouble() - sendTime.toDouble() <= LIMIT_TIME) {
-            curTime = TimeUtils().getTime()
+    private fun checkReceiveTime(funcName: String, sendTime: Long): Boolean {
+        var curTime = System.currentTimeMillis()
+        while ((curTime - sendTime) / 1000 <= LIMIT_TIME) {
+            curTime = System.currentTimeMillis()
             if (funcName == functionName) {
                 return true
             } else {
