@@ -25,7 +25,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.billiard.billiardclient.databinding.ActivityMainBinding
 import com.billiard.billiardclient.lock.AppLock
 import com.billiard.billiardclient.lock.AppLockConst
 import com.billiard.billiardclient.lock.AppLockPasswordActivity
@@ -33,6 +32,7 @@ import com.billiard.billiardclient.utils.CustomDialog
 import com.billiard.billiardclient.utils.CustomProgressDialog
 import com.billiard.billiardclient.utils.ReturnDialog
 import com.billiard.billiardclient.utils.TimeUtils
+import com.billiard.billiardclient.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -51,34 +51,35 @@ class MainActivity : AppCompatActivity() {
     private var time: Long = 0
     private var timerTask: Timer? = null
     private var statusTimerTask: Timer? = null
-    lateinit var tableNumber: SharedPreferences
-    lateinit var ipAddress: SharedPreferences
-    private lateinit var socket: Socket
     private var totalGameCount = 0
     private var gameCount = 0
     private var totalTimeHour = 0
     private var totalTimeMinutes = 0
     private var hour = 0
     private var minute = 0
-    lateinit var viewFinder: PreviewView
-    private var backgroundCode = 0
-    private var pressTime = 0L
-
-    private var imageCapture: ImageCapture? = null
-    private lateinit var cameraExecutor: ExecutorService
-
-    private var functionName = ""
-
-    var startTime = ""
     var startTimeD: Long = 0
     var endTimeD: Long = 0
 
+    lateinit var tableNumber: SharedPreferences
+    lateinit var ipAddress: SharedPreferences
+    private lateinit var socket: Socket
+
+    private var backgroundCode = 0
+    private var pressTime = 0L
+
+    lateinit var viewFinder: PreviewView
+    private var imageCapture: ImageCapture? = null
+    private lateinit var cameraExecutor: ExecutorService
     var cameraProvider: ProcessCameraProvider? = null
+
+    private var functionName = ""
 
     lateinit var returnDialog: ReturnDialog
 
+    private val communicationList = mutableListOf<CommunicationData>()
+
     companion object {
-        private const val LIMIT_TIME = 1.0
+        private const val LIMIT_TIME = 3.0
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -99,6 +100,12 @@ class MainActivity : AppCompatActivity() {
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val funcNameList = arrayListOf("START", "END", "POLL", "ENDGAME", "CLEAR")
+
+        for (i in funcNameList.indices) {
+            communicationList.add(CommunicationData(funcNameList[i]))
+        }
+
         // 화면 항상 켜짐 상태
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -112,13 +119,16 @@ class MainActivity : AppCompatActivity() {
 
         removeFileDate()
 
+        tcpConnect()
+
         // 사운드 추가
         val soundPool = SoundPool.Builder().build()
         val startSound = soundPool.load(this, R.raw.sound1, 1)
         val endSound = soundPool.load(this, R.raw.sound2, 1)
 
-        tableNumber = getSharedPreferences("number", MODE_PRIVATE)
-        ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
+        CoroutineScope(Dispatchers.IO).launch {
+            processCommunication()
+        }
 
         // 권한에 따른 카메라 실행
         if (!allPermissionsGranted()) {
@@ -139,7 +149,7 @@ class MainActivity : AppCompatActivity() {
             if (event.action == MotionEvent.ACTION_DOWN) {
                 pressTime = System.currentTimeMillis()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                if ((System.currentTimeMillis() - pressTime) >= 5000) {
+                if ((System.currentTimeMillis() - pressTime) >= 3000) {
                     if (AppLock(this).isPassLockSet()) {
                         val intent = Intent(this, AppLockPasswordActivity::class.java).apply {
                             putExtra(AppLockConst.type, AppLockConst.UNLOCK_PASSWORD)
@@ -157,46 +167,124 @@ class MainActivity : AppCompatActivity() {
 
         // start 버튼 클릭 시 실행 여부에 따른 start stop 실행
         binding.startBtn.setOnClickListener {
-            Log.d("MainActivity", backgroundCode.toString())
             displayCurState("전송 중..")
             when (backgroundCode) {
                 0 -> {
                     tcpConnect()
                 }
                 1 -> {
-                    startCamera()
+                    binding.startBtn.isEnabled = false
+                    soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                     CoroutineScope(Dispatchers.IO).launch {
-                        delay(100)
-                        takePhoto()
-                        soundPool.play(startSound, 1.0f, 1.0f, 0, 0, 1.0f)
                         dataSend("START", totalGameCount.toString())
-                        startTime = TimeUtils().getTime()
-                        startTimeD = System.currentTimeMillis()
-                        if (checkReceiveTime("START", startTimeD)) {
-                            startTimer()
-                            displayCurState("")
-                        } else {
-                            runOnUiThread {
-                                CustomProgressDialog("접속 중..").show(
-                                    supportFragmentManager,
-                                    "CustomDialog"
-                                )
-                            }
-                            displayCurState("네트워크 오류")
-                            tcpConnect()
-                        }
-                        functionName = ""
                     }
-                    Handler().postDelayed(Runnable {
+                    startTimeD = System.currentTimeMillis()
+                    communicationList.find { it.funcName == "START" }?.data = ""
+                    communicationList.find { it.funcName == "START" }?.sendTime = startTimeD
+                    Handler().postDelayed({
                         cameraProvider!!.unbindAll()
                     }, 3000)
                 }
                 2 -> {
-                    soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                    binding.startBtn.isEnabled = false
                     timerTask?.cancel()
-                    endDialog()
+                    soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        dataSend(
+                            "END",
+                            totalGameCount.toString(),
+                            "${String.format("%02d", hour)}${String.format("%02d", minute)}"
+                        )
+                    }
+                    endTimeD = System.currentTimeMillis()
+                    communicationList.find { it.funcName == "END" }?.data = ""
+                    communicationList.find { it.funcName == "END" }?.sendTime = endTimeD
+                    getTotalGameTime()
+                    displayTotal()
                 }
             }
+        }
+    }
+
+    private fun processCommunication() {
+        while (true) {
+            for (i in communicationList.indices) {
+                if (communicationList[i].receiveTime != 0L) {
+                    Log.d("processCommunication", "${communicationList[i]}")
+                    when (communicationList[i].funcName) {
+                        "START" -> {
+                            if (checkReceiveTime(
+                                    communicationList[i].funcName,
+                                    communicationList[i].sendTime
+                                ) || communicationList[i].sendTime != 0L
+                            ) {
+                                startCamera()
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    delay(100)
+                                    takePhoto()
+                                    startTimer()
+                                }
+                                displayCurState("")
+                                runOnUiThread {
+                                    binding.startBtn.isEnabled = true
+                                }
+                            } else {
+                                runOnUiThread {
+                                    CustomProgressDialog("접속 중.. start ${communicationList[i].sendTime}").show(
+                                        supportFragmentManager,
+                                        "CustomDialog"
+                                    )
+                                }
+                                displayCurState("네트워크 오류")
+                                tcpConnect()
+                            }
+                            functionName = ""
+                        }
+                        "END" -> {
+                            if (checkReceiveTime(
+                                    communicationList[i].funcName,
+                                    communicationList[i].sendTime
+                                ) || communicationList[i].sendTime != 0L
+                            ) {
+                                endDialog()
+                            } else {
+                                runOnUiThread {
+                                    CustomProgressDialog("접속 중.. end ${communicationList[i].sendTime}").show(
+                                        supportFragmentManager,
+                                        "CustomDialog"
+                                    )
+                                }
+                                displayCurState("네트워크 오류")
+                                tcpConnect()
+                            }
+                            communicationList[i].sendTime = 0L
+                            functionName = ""
+                        }
+                        "ENDGAME" -> {
+                            returnDialog.dismiss()
+                            runOnUiThread {
+                                binding.totalHourTimeTv.text = "00"
+                                binding.totalMinutesTimeTv.text = "00"
+                                binding.gameCountTv.text = "0"
+                            }
+                        }
+                        "POLL" -> {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                dataSend("STATUS")
+                            }
+                        }
+                        "CLOSE" -> {
+                            totalGameCount = 0
+                        }
+                    }
+                    communicationList[i].sendTime = 0L
+                    communicationList[i].receiveTime = 0L
+                    communicationList[i].data = ""
+                }
+                Thread.yield()
+                Thread.sleep(100)
+            }
+
         }
     }
 
@@ -204,45 +292,39 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("게임을 더 하시겠습니까?")
             .setPositiveButton("네", DialogInterface.OnClickListener { dialog, which ->
-                procedureEndGame("END", hour, minute)
+                displayCurState("")
+                runOnUiThread {
+                    binding.startBtn.isEnabled = true
+                }
+                timerClear()
             })
             .setNegativeButton("아니오", DialogInterface.OnClickListener { dialog, which ->
-                procedureEndGame("ENDGAME", totalTimeHour, totalTimeMinutes)
-                returnDialog.show(supportFragmentManager, "ReturnDialog")
-            })
-        val alertDialog = builder.create()
-        val window = alertDialog.window
-        window?.setGravity(Gravity.BOTTOM)
-        alertDialog.show()
-    }
-
-    private fun procedureEndGame(fucName: String, hour: Int, minute: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            dataSend(
-                fucName,
-                totalGameCount.toString(),
-                "${String.format("%02d", hour)}${
-                    String.format(
-                        "%02d",
-                        minute
+                CoroutineScope(Dispatchers.IO).launch {
+                    dataSend(
+                        "ENDGAME",
+                        totalGameCount.toString(),
+                        "${String.format("%02d", totalTimeHour)}${
+                            String.format(
+                                "%02d",
+                                totalTimeMinutes
+                            )
+                        }"
                     )
-                }"
-            )
+                }
+                displayCurState("")
+                runOnUiThread {
+                    binding.startBtn.isEnabled = true
+                }
+                timerClear()
+                returnDialog.show(supportFragmentManager, "ReturnDialog")
+                functionName = ""
+            })
+        runOnUiThread {
+            val alertDialog = builder.create()
+            val window = alertDialog.window
+            window?.setGravity(Gravity.BOTTOM)
+            alertDialog.show()
         }
-        getGameTime()
-        endTimeD = System.currentTimeMillis()
-        if (checkReceiveTime(fucName, endTimeD)) {
-            stopTimer()
-            displayCurState("")
-        } else {
-            CustomProgressDialog("접속 중..").show(
-                supportFragmentManager,
-                "CustomDialog"
-            )
-            displayCurState("네트워크 오류")
-            tcpConnect()
-        }
-        functionName = ""
     }
 
     // Connect 버튼 클릭 시 연결/데이터 송신
@@ -320,6 +402,8 @@ class MainActivity : AppCompatActivity() {
 
     // tcp를 통해 네트워크 연결
     private fun tcpConnect() {
+        tableNumber = getSharedPreferences("number", MODE_PRIVATE)
+        ipAddress = getSharedPreferences("ip", MODE_PRIVATE)
         val addr = "${ipAddress.getString("ip", "NULL")}"
         Log.d(TAG, addr)
         val thread = ConnectThread(addr)
@@ -329,8 +413,8 @@ class MainActivity : AppCompatActivity() {
     // 데이터 수신
     private fun dataReceive() {
         try {
-            Log.d(TAG, "데이터 수신 준비")
             while (true) {
+                Log.d("dataReceive", "데이터 수신 준비")
                 var bytes: Int  // 단어 개수
                 var tmp: String?    // 단어
                 var tmp2: String?
@@ -349,9 +433,10 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, tmp2)
                     val token = tmp2.split(' ')     // 받아온 신호 space로 구분하기
                     functionName = token[2]
-                    Log.d(TAG, "dataReceive에서 functionName: $functionName")
-
-                    checkFunc(functionName)
+                    val receiveTimeD = System.currentTimeMillis()
+                    communicationList.find { it.funcName == functionName }?.receiveTime =
+                        receiveTimeD
+                    communicationList.find { it.funcName == functionName }?.data = tmp
                 }
 
                 Thread.sleep(10)    // Thread 일시 정지
@@ -360,26 +445,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IOException) {
             e.printStackTrace()
             Log.e(TAG, "수신 에러")
-        }
-    }
-
-    // 받아온 정보의 Function에 대해 처리
-    private fun checkFunc(name: String) {
-        when (name) {
-            "POLL" -> {
-                dataSend("STATUS")
-            }
-            "RESET" -> {
-                runOnUiThread {
-                    binding.totalHourTimeTv.text = "00"
-                    binding.totalMinutesTimeTv.text = "00"
-                    binding.gameCountTv.text = "0"
-                    returnDialog.dismiss()
-                }
-            }
-            "CLOSE" -> {
-                totalGameCount = 0
-            }
         }
     }
 
@@ -447,21 +512,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Timer stop
-    private fun stopTimer() {
-        Log.d(TAG, "stopTimer에서 $functionName 확인")
+    private fun displayTotal() {
         gameCount++
         runOnUiThread {
             binding.gameCountTv.text = gameCount.toString()
+            binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
+            binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
+        }
+    }
+
+    private fun timerClear() {
+        runOnUiThread {
+            binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
+            backgroundCode = 1
             // 시간초기화
             binding.hourTensText.text = "0"
             binding.hourUnitsText.text = "0"
             binding.minuteTensText.text = "0"
             binding.minuteUnitsText.text = "0"
-            binding.startBtn.setBackgroundResource(R.drawable.start_button_ripple)
-            backgroundCode = 1
-            Log.d("stopTimer()", "backgroundCode : $backgroundCode")
-            binding.totalHourTimeTv.text = String.format("%02d", totalTimeHour)
-            binding.totalMinutesTimeTv.text = String.format("%02d", totalTimeMinutes)
         }
         endTimeD = 0
     }
@@ -482,7 +550,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 계산 전까지의 모든 게임 시간을 합쳐주는 기능
-    private fun getGameTime() {
+    private fun getTotalGameTime() {
         totalTimeMinutes += minute
         val exceedMinutes = totalTimeMinutes / 60
         totalTimeMinutes %= 60
@@ -551,7 +619,7 @@ class MainActivity : AppCompatActivity() {
                 val diffMil = todayMil - fileCal.timeInMillis
                 // 날짜 변경
                 val diffDay = (diffMil / oneDayMil).toInt()
-                if (diffDay >= 0 && list[i].exists()) {
+                if (diffDay >= 7 && list[i].exists()) {
                     list[i].delete()
                 }
             }

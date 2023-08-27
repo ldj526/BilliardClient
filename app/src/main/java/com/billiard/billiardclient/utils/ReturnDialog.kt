@@ -5,9 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import com.billiard.billiardclient.databinding.CustomProgressDialogBinding
 import com.billiard.billiardclient.databinding.ReturnDialogBinding
-import java.util.*
 
 class ReturnDialog(private val title: String, private val content: String) : DialogFragment() {
     private var _binding: ReturnDialogBinding? = null
