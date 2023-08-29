@@ -163,6 +163,19 @@
                 app:layout_constraintTop_toTopOf="@+id/hourTensText" />
 
             <TextView
+                android:id="@+id/colonText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="100dp"
+                android:textColor="#FFFFFF"
+                android:text=":"
+                android:layout_marginStart="35dp"
+                android:layout_marginBottom="30dp"
+                app:layout_constraintBottom_toBottomOf="@+id/hourUnitsText"
+                app:layout_constraintStart_toEndOf="@+id/hourUnitsText"
+                app:layout_constraintTop_toTopOf="@+id/hourUnitsText" />
+
+            <TextView
                 android:id="@+id/minuteTensText"
                 android:layout_marginStart="78dp"
                 style="@style/TimerTextView"

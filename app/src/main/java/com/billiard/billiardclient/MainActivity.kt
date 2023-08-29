@@ -14,6 +14,7 @@ import android.os.Handler
 import android.provider.MediaStore
 import android.util.Log
 import android.view.*
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -224,6 +225,7 @@ class MainActivity : AppCompatActivity() {
             binding.startBtn.isEnabled = false
         }
         timerTask?.cancel()
+        binding.colonText.clearAnimation()
         soundPool.play(endSound, 1.0f, 1.0f, 0, 0, 1.0f)
         if (endTimeD == 0L) {
             endTimeD = System.currentTimeMillis()
@@ -542,13 +544,15 @@ class MainActivity : AppCompatActivity() {
     private fun startTimer() {
         runOnUiThread {
             binding.startBtn.setBackgroundResource(R.drawable.end_button_ripple)
+            val anim = AnimationUtils.loadAnimation(this, R.anim.blink_animation)
+            binding.colonText.startAnimation(anim)
         }
         backgroundCode = 2
         time = 0
         timerTask =
             timer(period = 500) { //반복주기는 peroid 프로퍼티로 설정, 단위는 1000분의 1초 (period = 1000, 1초)
                 val curTimeD = System.currentTimeMillis()
-                time = (curTimeD - startTimeD) / 1000
+                time = (curTimeD - startTimeD) / 1000 / 60
                 hour = (time / 60).toInt() // 나눗셈의 몫 (시간 부분)
                 minute = (time % 60).toInt() // 나눗셈의 나머지 (분 부분)
 
