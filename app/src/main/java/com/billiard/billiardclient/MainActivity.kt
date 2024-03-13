@@ -124,6 +124,8 @@ class MainActivity : AppCompatActivity() {
 
 //        returnDialog = ReturnDialog("정산 중..", "카운터로 가서 계산하세요.")
 
+        binding.tvVersion.text = "EzBilliards v${BuildConfig.VERSION_NAME}"
+
         socket = Socket()
 
         setFullScreen()

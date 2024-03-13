@@ -19,17 +19,22 @@
     </style>
 
     <style name="TimerTextView" parent="@style/Widget.AppCompat.TextView">
-        <item name="android:layout_width">70dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:autoSizeMaxTextSize">250sp</item>
-        <item name="android:autoSizeMinTextSize">100sp</item>
-        <item name="android:autoSizeStepGranularity">2sp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMaxTextSize">400sp</item>
+        <item name="android:autoSizeMinTextSize">60sp</item>
+        <item name="android:autoSizeStepGranularity">5sp</item>
+        <item name="layout_constraintDimensionRatio">1:1.7</item>
+        <item name="layout_constraintWidth_percent">0.23</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:background">@drawable/timer_background</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="android:paddingTop">6dp</item>
         <item name="android:fontFamily">@font/seven_segment</item>
-        <item name="android:freezesText">false</item>
         <item name="android:gravity">center</item>
         <item name="android:text">0</item>
         <item name="android:textColor">#FFFFFF</item>
-        <item name="android:textSize">130sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
