@@ -7,11 +7,13 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.SoundPool
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.view.animation.AnimationUtils
@@ -778,6 +780,17 @@ class MainActivity : AppCompatActivity() {
                 ).show()
                 finish()
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!Settings.canDrawOverlays(this)) {
+            // 권한이 비활성화되어 있을 때, '앱 위에 그리기' 권한 설정 화면으로 이동
+            val intent =
+                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            Log.d("BootService", "권한X")
+            startActivity(intent)
         }
     }
 
