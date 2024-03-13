@@ -47,8 +47,7 @@ import kotlin.concurrent.timer
 
 class MainActivity : AppCompatActivity() {
 
-    private var _binding: ActivityMainBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var binding: ActivityMainBinding
     private var time: Long = 0
     private var timerTask: Timer? = null
     private var statusTimerTask: Timer? = null
@@ -107,7 +106,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val funcNameList = arrayListOf("START", "END", "POLL", "ENDGAME", "CLEAR")
@@ -283,10 +282,8 @@ class MainActivity : AppCompatActivity() {
                 functionName = ""
             } else {
                 runOnUiThread {
-                    CustomProgressDialog("접속 중..").show(
-                        supportFragmentManager,
-                        "CustomDialog"
-                    )
+                    val customProgressDialog = CustomProgressDialog.newInstance("접속 중..")
+                    customProgressDialog.show(supportFragmentManager, "CustomDialog")
                     binding.startBtn.isEnabled = true
                 }
                 displayCurState("네트워크 오류")
@@ -411,18 +408,13 @@ class MainActivity : AppCompatActivity() {
                 uhe.printStackTrace()
 
                 runOnUiThread {
-                    displayCurState("네트워크 오류")
-                    CustomDialog("호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)").show(
-                        supportFragmentManager,
-                        "CustomDialog"
-                    )
+                    showDialog("호스트의 IP 주소를 식별할 수 없음.(잘못된 주소 값 또는 호스트 이름 사용)")
                 }
             } catch (ioe: IOException) { // 소켓 생성 과정에서 I/O 에러 발생.
                 Log.e(TAG, "생성 Error : 네트워크 응답 없음")
 
                 runOnUiThread {
-                    displayCurState("네트워크 오류")
-                    CustomDialog("네트워크 응답 없음").show(supportFragmentManager, "CustomDialog")
+                    showDialog("네트워크 응답 없음")
                 }
             } catch (se: SecurityException) { // security manager에서 허용되지 않은 기능 수행.
                 Log.e(
@@ -431,11 +423,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 runOnUiThread {
-                    displayCurState("네트워크 오류")
-                    CustomDialog("보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)").show(
-                        supportFragmentManager,
-                        "CustomDialog"
-                    )
+                    showDialog("보안(Security) 위반에 대해 보안 관리자(Security Manager)에 의해 발생. (프록시(proxy) 접속 거부, 허용되지 않은 함수 호출)")
                 }
             } catch (le: IllegalArgumentException) { // 소켓 생성 시 전달되는 포트 번호(65536)이 허용 범위(0~65535)를 벗어남.
                 Log.e(
@@ -444,13 +432,18 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 runOnUiThread {
-                    displayCurState("네트워크 오류")
-                    CustomDialog("메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)").show(
-                        supportFragmentManager,
-                        "CustomDialog"
-                    )
+                    showDialog("메서드에 잘못된 파라미터가 전달되는 경우 발생.(0~65535 범위 밖의 포트 번호 사용, null 프록시(proxy) 전달)")
                 }
             }
+        }
+    }
+
+    // CustomDialog 띄우기
+    private fun showDialog(message: String) {
+        if (!isFinishing && !isDestroyed) {
+            displayCurState("네트워크 오류")
+            val customDialog = CustomDialog.newInstance(message)
+            customDialog.show(supportFragmentManager, "CustomDialog")
         }
     }
 
@@ -796,6 +789,5 @@ class MainActivity : AppCompatActivity() {
         }
         super.onDestroy()
         cameraExecutor.shutdown()
-        _binding = null
     }
 }

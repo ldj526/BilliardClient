@@ -8,15 +8,27 @@ import androidx.fragment.app.DialogFragment
 import com.billiard.billiardclient.databinding.CustomDialogBinding
 
 // 커스텀 다이얼로그
-class CustomDialog(private val message: String) : DialogFragment() {
+class CustomDialog() : DialogFragment() {
     private var _binding: CustomDialogBinding? = null
     private val binding get() = _binding!!
+
+    companion object {
+        fun newInstance(message: String): CustomDialog {
+            val args = Bundle()
+            args.putString("message", message)
+            val fragment = CustomDialog()
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val message = arguments?.getString("message")
+
         _binding = CustomDialogBinding.inflate(inflater, container, false)
         val view = binding.root
 

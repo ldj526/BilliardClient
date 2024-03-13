@@ -9,15 +9,27 @@ import com.billiard.billiardclient.databinding.CustomProgressDialogBinding
 import java.util.*
 
 // 커스텀 다이얼로그
-class CustomProgressDialog(private val message: String) : DialogFragment() {
+class CustomProgressDialog() : DialogFragment() {
     private var _binding: CustomProgressDialogBinding? = null
     private val binding get() = _binding!!
+
+    companion object {
+        fun newInstance(message: String): CustomDialog {
+            val args = Bundle()
+            args.putString("message", message)
+            val fragment = CustomDialog()
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val message = arguments?.getString("message")
+
         _binding = CustomProgressDialogBinding.inflate(inflater, container, false)
         val view = binding.root
 
